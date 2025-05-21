@@ -1,0 +1,86 @@
+name: CI/CD
+
+on:
+  push:
+    tags: [v*]
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+
+  test:
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+          cache: false
+
+      - run: go version
+
+      - uses: actions/cache@v4
+        id: cache-go-with-tools
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+            ~/.cache/golangci-lint
+            .buildcache
+          key: v1-go-with-tools-${{ runner.os }}-${{ hashFiles('0-tools.go') }}-${{ hashFiles('go.sum') }}
+          restore-keys: |
+            v1-go-with-tools-${{ runner.os }}-${{ hashFiles('0-tools.go') }}-
+            v1-go-with-tools-${{ runner.os }}-
+
+      - run: scripts/test
+
+      - name: Report code coverage
+        env:
+          COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+        if: env.COVERALLS_TOKEN
+        run: |-
+          scripts/cover
+          .buildcache/bin/goveralls -coverprofile=.buildcache/cover.out -service=GitHub
+
+  build-and-release:
+    needs: test
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 30
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+          cache: false
+
+      - run: go version
+
+      - name: Turnstyle
+        uses: softprops/turnstyle@v2
+        with:
+          poll-interval-seconds: 3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/cache@v4
+        id: cache-go-with-tools
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+            ~/.cache/golangci-lint
+            .buildcache
+          key: v1-go-with-tools-${{ runner.os }}-${{ hashFiles('0-tools.go') }}-${{ hashFiles('go.sum') }}
+          restore-keys: |
+            v1-go-with-tools-${{ runner.os }}-${{ hashFiles('0-tools.go') }}-
+            v1-go-with-tools-${{ runner.os }}-
+
+      - run: scripts/release
+        if: github.ref_type == 'tag'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
