@@ -1,3 +1,4 @@
+// Package main provides a tool for filtering and displaying Markdown tasks based on their status and dates.
 package main
 
 import (
@@ -10,7 +11,12 @@ import (
 	"github.com/yuin/goldmark/util"
 )
 
-var source = []byte(`---
+// TODO: Поддержка флагов -email, -from-day, -to-day.
+// TODO: Чтение файлов из os.Args (либо stdin, если файлов нет).
+// TODO: Вывод с указанием из какого файла эти задачи (если есть хоть одна из этого файла).
+// TODO: Отправка вывода на email либо stdout (если -email не задан).
+func main() {
+	source := []byte(`---
 a: 1
 b: x
   - b 2
@@ -45,11 +51,6 @@ b: x
   - [ ] Second line.
 	`)
 
-// TODO: Поддержка флагов -email, -from-day, -to-day.
-// TODO: Чтение файлов из os.Args (либо stdin, если файлов нет).
-// TODO: Вывод с указанием из какого файла эти задачи (если есть хоть одна из этого файла).
-// TODO: Отправка вывода на email либо stdout (если -email не задан).
-func main() {
 	md := goldmark.New(
 		goldmark.WithExtensions(
 			obsidian.NewPlugTasks(),

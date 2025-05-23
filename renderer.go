@@ -53,6 +53,8 @@ func NewActualTasksRenderer(dayFrom, dayTo int) renderer.NodeRenderer {
 }
 
 // RegisterFuncs add AST objects to Renderer.
+//
+//nolint:funlen // This function naturally needs many statements to register all AST node types
 func (r *FilteredTasksRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
 	// Register render functions for all known kinds to make sure no other functions
 	// (registered with lower priority) will be called and output some HTML.
@@ -116,6 +118,10 @@ func (r *FilteredTasksRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegis
 	reg.Register(obsast.KindPlugTasksOnCompletion, nil)
 }
 
+// listItem renders a list item node, but only if it matches the configured filters.
+// The entering parameter indicates whether we're entering (true) or leaving (false) the node.
+//
+//nolint:revive // entering parameter is required by goldmark AST walker interface
 func (r *FilteredTasksRenderer) listItem(w util.BufWriter, source []byte, node ast.Node, entering bool) (
 	ast.WalkStatus, error,
 ) {
@@ -133,7 +139,7 @@ func (r *FilteredTasksRenderer) listItem(w util.BufWriter, source []byte, node a
 		Scheduled  time.Time
 		Start      time.Time
 	}
-	err := ast.Walk(n.FirstChild(), func(n ast.Node, entering bool) (ast.WalkStatus, error) {
+	err := ast.Walk(n.FirstChild(), func(n ast.Node, _ bool) (ast.WalkStatus, error) {
 		switch n := n.(type) {
 		case *ast.List:
 			return ast.WalkSkipChildren, nil
@@ -158,10 +164,10 @@ func (r *FilteredTasksRenderer) listItem(w util.BufWriter, source []byte, node a
 		isBetween(task.Start, r.StartBefore, time.Time{}) &&
 		(!r.RequireDueOrScheduled || !task.Due.IsZero() || !task.Scheduled.IsZero()) {
 		seg := n.FirstChild().Lines().At(0)
-		_, _ = w.WriteRune('-')
-		_, _ = w.WriteRune(' ')
+		_ = w.WriteByte('-')
+		_ = w.WriteByte(' ')
 		_, _ = w.Write(seg.Value(source))
-		_, _ = w.WriteRune('\n')
+		_ = w.WriteByte('\n')
 	}
 
 	return ast.WalkContinue, nil
