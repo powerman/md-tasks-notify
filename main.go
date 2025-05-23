@@ -2,8 +2,11 @@
 package main
 
 import (
+	"bytes"
 	"log"
 	"os"
+	"text/template"
+	"time"
 
 	obsidian "github.com/powerman/goldmark-obsidian"
 	"github.com/yuin/goldmark"
@@ -11,12 +14,15 @@ import (
 	"github.com/yuin/goldmark/util"
 )
 
-// TODO: Поддержка флагов -email, -from-day, -to-day.
-// TODO: Чтение файлов из os.Args (либо stdin, если файлов нет).
-// TODO: Вывод с указанием из какого файла эти задачи (если есть хоть одна из этого файла).
-// TODO: Отправка вывода на email либо stdout (если -email не задан).
-func main() {
-	source := []byte(`---
+// getExampleMarkdown returns example Markdown content with dates relative to current date using Go templates
+func getExampleMarkdown() []byte {
+	type markdownData struct {
+		Yesterday string
+		Today     string
+		Tomorrow  string
+	}
+
+	const markdownTmpl = `---
 a: 1
 b: x
   - b 2
@@ -26,21 +32,21 @@ b: x
 # Test
 
 - Item _cool_ 1
-- [ ] Due yesterday 📅 2024-10-18
-- [ ] Due today     📅 2024-10-19
-- [ ] Due tomorrow  📅 2024-11-02
-- [ ] Scheduled yesterday ⏳ 2024-10-18
-- [ ] Scheduled today     ⏳ 2024-10-19
-- [ ] Scheduled tomorrow  ⏳ 2024-10-20
-- [ ] Start yesterday 🛫 2024-10-18
-- [ ] Start today     🛫 2024-10-19
-- [ ] Start tomorrow  🛫 2024-10-20
-- [ ] Due tomorrow Start yesterday 🛫 2024-10-18 📅 2024-10-20
-- [ ] Due tomorrow Start today     🛫 2024-10-19 📅 2024-10-20
-- [ ] Due tomorrow Start tomorrow  🛫 2024-10-20 📅 2024-10-20
-- [ ] Scheduled tomorrow Start yesterday 🛫 2024-10-18 ⏳ 2024-10-20
-- [ ] Scheduled tomorrow Start today     🛫 2024-10-19 ⏳ 2024-10-20
-- [ ] Scheduled tomorrow Start tomorrow  🛫 2024-10-20 ⏳ 2024-10-20
+- [ ] Due yesterday 📅 {{.Yesterday}}
+- [ ] Due today     📅 {{.Today}}
+- [ ] Due tomorrow  📅 {{.Tomorrow}}
+- [ ] Scheduled yesterday ⏳ {{.Yesterday}}
+- [ ] Scheduled today     ⏳ {{.Today}}
+- [ ] Scheduled tomorrow  ⏳ {{.Tomorrow}}
+- [ ] Start yesterday 🛫 {{.Yesterday}}
+- [ ] Start today     🛫 {{.Today}}
+- [ ] Start tomorrow  🛫 {{.Tomorrow}}
+- [ ] Due tomorrow Start yesterday 🛫 {{.Yesterday}} 📅 {{.Tomorrow}}
+- [ ] Due tomorrow Start today     🛫 {{.Today}} 📅 {{.Tomorrow}}
+- [ ] Due tomorrow Start tomorrow  🛫 {{.Tomorrow}} 📅 {{.Tomorrow}}
+- [ ] Scheduled tomorrow Start yesterday 🛫 {{.Yesterday}} ⏳ {{.Tomorrow}}
+- [ ] Scheduled tomorrow Start today     🛫 {{.Today}} ⏳ {{.Tomorrow}}
+- [ ] Scheduled tomorrow Start tomorrow  🛫 {{.Tomorrow}} ⏳ {{.Tomorrow}}
 - [X] Task
   - [ ] Subtask
 - [x] Large _cool_ real task 🆔 jps5k3 #tag ⛔ peg74d,gg3xkn ⏬ 🔁 every day ➕ 2024-10-15 🛫 2024-10-15 ⏳ 2024-10-15 📅 2024-10-15 ❌ 2024-10-15 ✅ 2024-10-15 ^some-id
@@ -48,8 +54,35 @@ b: x
   🔼⏬_ #tag ^e5bebf
 
   Second paragraph ⏬
-  - [ ] Second line.
-	`)
+  - [ ] Second line.`
+
+	today := time.Now()
+	data := markdownData{
+		Yesterday: today.AddDate(0, 0, -1).Format("2006-01-02"),
+		Today:     today.Format("2006-01-02"),
+		Tomorrow:  today.AddDate(0, 0, 1).Format("2006-01-02"),
+	}
+
+	tmpl, err := template.New("markdown").Parse(markdownTmpl)
+	if err != nil {
+		panic(err)
+	}
+
+	var buf bytes.Buffer
+	err = tmpl.Execute(&buf, data)
+	if err != nil {
+		panic(err)
+	}
+
+	return buf.Bytes()
+}
+
+// TODO: Поддержка флагов -email, -from-day, -to-day.
+// TODO: Чтение файлов из os.Args (либо stdin, если файлов нет).
+// TODO: Вывод с указанием из какого файла эти задачи (если есть хоть одна из этого файла).
+// TODO: Отправка вывода на email либо stdout (если -email не задан).
+func main() {
+	source := getExampleMarkdown()
 
 	md := goldmark.New(
 		goldmark.WithExtensions(
