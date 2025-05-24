@@ -14,7 +14,9 @@ while read -r suffix GOOS GOARCH GOARM; do
     CGO_ENABLED=0 GOOS=$GOOS GOARCH=$GOARCH GOARM=$GOARM \
         go build -o "$DIST_DIR/${GH_REPO}-$suffix" -ldflags "-s -w -X 'main.ver=$TAG'"
     pushd "$DIST_DIR"
-    upx "${GH_REPO}-$suffix"
+    if [ "$GOOS" != "darwin" ]; then
+        upx "${GH_REPO}-$suffix"
+    fi
     sha256sum "${GH_REPO}-$suffix" >"${GH_REPO}-$suffix.sha256"
     popd
 done <<DIST
