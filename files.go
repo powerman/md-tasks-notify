@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"log"
 	"os"
 	"path/filepath"
@@ -37,7 +38,8 @@ func readFiles(paths []string) ([]byte, error) {
 			return nil, err
 		}
 
-		if info.IsDir() {
+		switch {
+		case info.IsDir():
 			files, err := findMarkdownFiles(path)
 			if err != nil {
 				return nil, err
@@ -46,23 +48,26 @@ func readFiles(paths []string) ([]byte, error) {
 				log.Printf("Warning: Directory %q contains no Markdown files.", path)
 			}
 			mdFiles = append(mdFiles, files...)
-		} else if isMarkdownFile(path) {
+		case isMarkdownFile(path):
 			mdFiles = append(mdFiles, path)
-		} else {
+		default:
 			log.Printf("Warning: Skipping %q as it is not a Markdown file.", path)
 		}
 	}
 
-	data := make([]byte, 0, len(mdFiles)*estimatedFileSize) // Pre-allocate with rough estimate per file
+	if len(mdFiles) == 0 {
+		return nil, nil
+	}
+
+	var allData [][]byte
 	for _, filename := range mdFiles {
 		//nolint:gosec // Reading files provided as command-line arguments is the intended behavior.
 		fileData, err := os.ReadFile(filename)
 		if err != nil {
 			return nil, err
 		}
-		data = append(data, fileData...)
-		// Add newline between files to ensure proper parsing
-		data = append(data, '\n')
+		allData = append(allData, fileData)
 	}
-	return data, nil
+
+	return bytes.Join(allData, []byte{'\n'}), nil
 }
