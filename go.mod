@@ -9,7 +9,7 @@ require (
 	github.com/yuin/goldmark v1.7.8
 	go.abhg.dev/goldmark/hashtag v0.3.1
 	go.abhg.dev/goldmark/mermaid v0.5.0
-	go.abhg.dev/goldmark/wikilink v0.5.0
+	go.abhg.dev/goldmark/wikilink v0.6.0
 	go.uber.org/mock v0.4.0
 )
 
