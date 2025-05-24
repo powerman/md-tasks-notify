@@ -6,8 +6,8 @@ go generate 0-tools.go
 DIST_DIR=bin
 TAG=$(git describe --match='v*' --exact-match --tags)
 GH="$(git remote get-url origin | sed -e 's/.*://' -e 's/\.git$//')"
-GH_USER="${GH%%/*}"
-GH_REPO="${GH##*/}"
+GH_USER="$(basename "$(dirname "$GH")")"
+GH_REPO="$(basename "$GH")"
 
 mkdir -p $DIST_DIR
 while read -r suffix GOOS GOARCH GOARM; do
