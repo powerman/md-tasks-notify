@@ -21,13 +21,13 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = run(data, os.Stdout)
+	err = run(0, 1, data, os.Stdout)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func run(source []byte, w io.Writer) error {
+func run(dayFrom int, dayTo int, source []byte, w io.Writer) error {
 	md := goldmark.New(
 		goldmark.WithExtensions(
 			obsidian.NewPlugTasks(),
@@ -35,7 +35,7 @@ func run(source []byte, w io.Writer) error {
 		),
 		goldmark.WithRendererOptions(renderer.WithNodeRenderers(
 			// Prio <500 needed to overwrite extension.GFM rendering to HTML.
-			util.Prioritized(NewActualTasksRenderer(1, 1), 0),
+			util.Prioritized(NewActualTasksRenderer(dayFrom, dayTo), 0),
 		)),
 	)
 	err := md.Convert(source, w)
