@@ -153,7 +153,7 @@ func TestRun(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			err := run(tt.fromDate, tt.toDate, tt.input, &buf)
+			err := filterActualTasks(tt.fromDate, tt.toDate, tt.input, &buf)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("run() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -168,6 +168,180 @@ func TestRun(t *testing.T) {
 			for _, exclude := range tt.excludes {
 				if strings.Contains(output, exclude) {
 					t.Errorf("run() output should not contain %q but does\nOutput:\n%s", exclude, output)
+				}
+			}
+		})
+	}
+}
+
+func TestFilterMarkdownFiles(t *testing.T) {
+	tests := []struct {
+		name    string
+		files   map[string][]byte
+		fromDay int
+		toDay   int
+		want    map[string][]byte
+		wantErr bool
+	}{
+		{
+			name: "Single file with tasks",
+			files: map[string][]byte{
+				"test.md": getExampleMarkdown(),
+			},
+			fromDay: 0,
+			toDay:   1,
+			wantErr: false,
+		},
+		{
+			name: "Multiple files",
+			files: map[string][]byte{
+				"test1.md": getExampleMarkdown(),
+				"test2.md": []byte("- [ ] Due today 📅 " + time.Now().Format(time.DateOnly)),
+				"empty.md": []byte("# No tasks here"),
+			},
+			fromDay: 0,
+			toDay:   1,
+			wantErr: false,
+		},
+		{
+			name:    "Empty input",
+			files:   make(map[string][]byte),
+			fromDay: 0,
+			toDay:   1,
+			wantErr: false,
+			want:    make(map[string][]byte),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := filterMarkdownFiles(tt.files, &tt.fromDay, &tt.toDay)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("filterMarkdownFiles() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.want != nil && len(got) != len(tt.want) {
+				t.Errorf("filterMarkdownFiles() got = %v tasks, want %v tasks", len(got), len(tt.want))
+			}
+
+			// Check that non-empty files contain some content
+			if len(tt.files) > 0 && len(got) == 0 {
+				t.Error("filterMarkdownFiles() returned empty result for non-empty input")
+			}
+		})
+	}
+}
+
+func TestFormatTasks(t *testing.T) {
+	tests := []struct {
+		name     string
+		tasks    map[string][]byte
+		contains []string
+		excludes []string
+	}{
+		{
+			name: "Single file",
+			tasks: map[string][]byte{
+				"test.md": []byte("- [ ] Task 1\n- [ ] Task 2"),
+			},
+			contains: []string{
+				"test.md:",
+				"Task 1",
+				"Task 2",
+			},
+		},
+		{
+			name: "Multiple files",
+			tasks: map[string][]byte{
+				"test1.md": []byte("- [ ] Task 1"),
+				"test2.md": []byte("- [ ] Task 2"),
+			},
+			contains: []string{
+				"test1.md:",
+				"test2.md:",
+				"Task 1",
+				"Task 2",
+			},
+		},
+		{
+			name:  "Empty input",
+			tasks: make(map[string][]byte),
+		},
+		{
+			name: "Empty file content",
+			tasks: map[string][]byte{
+				"test.md": []byte(""),
+			},
+			contains: []string{"test.md:"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			buf := formatTasks(tt.tasks)
+			output := buf.String()
+
+			for _, want := range tt.contains {
+				if !strings.Contains(output, want) {
+					t.Errorf("formatTasks() output should contain %q but doesn't\nOutput:\n%s", want, output)
+				}
+			}
+			for _, exclude := range tt.excludes {
+				if strings.Contains(output, exclude) {
+					t.Errorf("formatTasks() output should not contain %q but does\nOutput:\n%s", exclude, output)
+				}
+			}
+		})
+	}
+}
+
+func TestRun_Integration(t *testing.T) {
+	tests := []struct {
+		name      string
+		fromDay   int
+		toDay     int
+		emailTo   string
+		paths     []string
+		wantErr   bool
+		wantPanic bool
+	}{
+		{
+			name:    "No paths provided",
+			fromDay: 0,
+			toDay:   1,
+			paths:   []string{},
+		},
+		{
+			name:    "Invalid path",
+			fromDay: 0,
+			toDay:   1,
+			paths:   []string{"nonexistent.md"},
+			wantErr: true,
+		},
+		{
+			name:      "Invalid date range",
+			fromDay:   2,
+			toDay:     1,
+			paths:     []string{},
+			wantPanic: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var stdout bytes.Buffer
+			if tt.wantPanic {
+				defer func() {
+					if r := recover(); r == nil {
+						t.Error("Expected panic but got none")
+					}
+				}()
+			}
+			err := run(&tt.fromDay, &tt.toDay, &tt.emailTo, &stdout, tt.paths)
+			if !tt.wantPanic {
+				if (err != nil) != tt.wantErr {
+					t.Errorf("run() error = %v, wantErr %v", err, tt.wantErr)
 				}
 			}
 		})

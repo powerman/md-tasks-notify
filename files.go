@@ -1,7 +1,8 @@
 package main
 
 import (
-	"bytes"
+	"fmt"
+	"io"
 	"io/fs"
 	"log"
 	"os"
@@ -9,7 +10,6 @@ import (
 	"strings"
 )
 
-// isMarkdownFile checks if the given path has a .md extension.
 func isMarkdownFile(path string) bool {
 	return strings.EqualFold(filepath.Ext(path), ".md")
 }
@@ -29,9 +29,8 @@ func findMarkdownFiles(fsys fs.FS, dir string) ([]string, error) {
 	return files, err
 }
 
-// readFiles reads and concatenates contents of all provided files and directories.
-// For directories, it recursively reads all files with .md extension.
-func readFiles(fsys fs.FS, paths []string) ([]byte, error) {
+// readMarkdownFilesFromFS reads markdown files from a filesystem.
+func readMarkdownFilesFromFS(fsys fs.FS, paths []string) (map[string][]byte, error) {
 	var mdFiles []string
 	for _, path := range paths {
 		info, err := fs.Stat(fsys, path)
@@ -57,23 +56,23 @@ func readFiles(fsys fs.FS, paths []string) ([]byte, error) {
 	}
 
 	if len(mdFiles) == 0 {
-		return nil, nil
+		return make(map[string][]byte), nil
 	}
 
-	var allData [][]byte //nolint:prealloc // Premature optimization.
+	result := make(map[string][]byte)
 	for _, filename := range mdFiles {
 		fileData, err := fs.ReadFile(fsys, filename)
 		if err != nil {
 			return nil, err
 		}
-		allData = append(allData, fileData)
+		result[filename] = fileData
 	}
 
-	return bytes.Join(allData, []byte{'\n'}), nil
+	return result, nil
 }
 
-// ReadFiles is a convenience wrapper around readFiles that uses the OS filesystem.
-func ReadFiles(paths []string) ([]byte, error) {
+// readMarkdownFiles reads markdown files from paths.
+func readMarkdownFiles(paths []string) (map[string][]byte, error) {
 	relPaths := make([]string, len(paths))
 	for i, path := range paths {
 		absPath, err := filepath.Abs(path)
@@ -83,5 +82,31 @@ func ReadFiles(paths []string) ([]byte, error) {
 		// Remove leading "/" to make path relative to root for fs.FS.
 		relPaths[i] = strings.TrimPrefix(absPath, "/")
 	}
-	return readFiles(os.DirFS("/"), relPaths)
+	filesData, err := readMarkdownFilesFromFS(os.DirFS("/"), relPaths)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert relative paths back to absolute
+	result := make(map[string][]byte, len(filesData))
+	for filename, data := range filesData {
+		result["/"+filename] = data
+	}
+	return result, nil
+}
+
+// readMarkdownFilesOrStdin reads markdown files from paths or stdin.
+func readMarkdownFilesOrStdin(paths []string) (map[string][]byte, error) {
+	var filesData map[string][]byte
+	var err error
+	if len(paths) > 0 {
+		filesData, err = readMarkdownFiles(paths)
+	} else {
+		data, err := io.ReadAll(os.Stdin)
+		if err != nil {
+			return nil, fmt.Errorf("read stdin: %w", err)
+		}
+		filesData = map[string][]byte{"": data}
+	}
+	return filesData, err
 }

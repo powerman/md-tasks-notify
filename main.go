@@ -1,11 +1,10 @@
 // Package main provides a tool for filtering and displaying Markdown tasks based on their status and dates.
-//
-// TODO: Вывод с указанием из какого файла эти задачи (если есть хоть одна из этого файла).
 package main
 
 import (
 	"bytes"
 	"flag"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -25,34 +24,55 @@ func main() {
 	toDay := flag.Int("to-day", 1, "End day relative to today (1 for tomorrow)")
 	emailTo := flag.String("email", "", "Send output to this email address instead of stdout")
 	flag.Parse()
-
-	var data []byte
-	var err error
-	if flag.NArg() > 0 {
-		data, err = ReadFiles(flag.Args())
-	} else {
-		data, err = io.ReadAll(os.Stdin)
-	}
-	if err != nil {
-		log.Fatalln("Failed to", err)
+	if *fromDay > *toDay {
+		log.Fatalln("Error: from-day must be less than or equal to to-day")
 	}
 
-	var buf bytes.Buffer
-	if err := run(*fromDay, *toDay, data, &buf); err != nil {
-		log.Fatalln("Failed to", err)
-	}
-
-	if *emailTo == "" {
-		_, err = io.Copy(os.Stdout, &buf)
-	} else {
-		err = NewEmail(nil).Send(*emailTo, emailSubject, &buf)
-	}
+	err := run(fromDay, toDay, emailTo, os.Stdout, flag.Args())
 	if err != nil {
 		log.Fatalln("Failed to", err)
 	}
 }
 
-func run(dayFrom int, dayTo int, source []byte, w io.Writer) error {
+// run is testable part of main function.
+func run(fromDay *int, toDay *int, emailTo *string, stdout io.Writer, paths []string) error {
+	files, err := readMarkdownFilesOrStdin(paths)
+	if err != nil {
+		return err
+	}
+
+	tasks, err := filterMarkdownFiles(files, fromDay, toDay)
+	if err != nil {
+		return err
+	}
+
+	buf := formatTasks(tasks)
+
+	if *emailTo == "" {
+		_, err = io.Copy(stdout, &buf)
+	} else {
+		err = NewEmail(nil).Send(*emailTo, emailSubject, &buf)
+	}
+	return err
+}
+
+// filterMarkdownFiles processes each file and returns a map of filenames to their filtered task content.
+func filterMarkdownFiles(files map[string][]byte, fromDay *int, toDay *int) (map[string][]byte, error) {
+	tasks := make(map[string][]byte)
+	for filename, data := range files {
+		var buf bytes.Buffer
+		if err := filterActualTasks(*fromDay, *toDay, data, &buf); err != nil {
+			return nil, fmt.Errorf("filter tasks: %w", err)
+		}
+		if buf.Len() > 0 {
+			tasks[filename] = buf.Bytes()
+		}
+	}
+	return tasks, nil
+}
+
+// filterActualTasks filters the actual tasks from the markdown data.
+func filterActualTasks(dayFrom int, dayTo int, markdownData []byte, filteredTasks io.Writer) error {
 	md := goldmark.New(
 		goldmark.WithExtensions(
 			obsidian.NewPlugTasks(),
@@ -63,6 +83,24 @@ func run(dayFrom int, dayTo int, source []byte, w io.Writer) error {
 			util.Prioritized(NewActualTasksRenderer(dayFrom, dayTo), 0),
 		)),
 	)
-	err := md.Convert(source, w)
+	err := md.Convert(markdownData, filteredTasks)
 	return err
+}
+
+// formatTasks takes filtered tasks and formats them with filenames into a single buffer.
+func formatTasks(tasks map[string][]byte) bytes.Buffer {
+	var buf bytes.Buffer
+	first := true
+	for filename, taskData := range tasks {
+		if !first {
+			buf.WriteByte('\n')
+		}
+		if filename != "" {
+			buf.WriteString(filename)
+			buf.WriteString(":\n")
+		}
+		buf.Write(taskData)
+		first = false
+	}
+	return buf
 }
