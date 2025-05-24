@@ -6,53 +6,17 @@ import (
 	"fmt"
 	"net/smtp"
 	"os"
-	"strings"
 	"testing"
+
+	"github.com/powerman/check"
+	"go.uber.org/mock/gomock"
 )
 
-// errMock is used to test error handling.
-var errMock = errors.New("mock error")
+// ErrMock is used to test error handling.
+var ErrMock = errors.New("mock error")
 
-// checkSendMail verifies that SendEmail was called with expected parameters.
-func checkSendMail(t *testing.T, tt *struct {
-	name       string
-	setup      func()
-	config     *EmailConfig
-	to         string
-	subject    string
-	content    string
-	wantAddr   string
-	wantAuth   bool
-	wantFrom   string
-	wantTo     []string
-	wantBody   []string
-	wantErrStr string
-},
-) func(string, smtp.Auth, string, []string, []byte) error {
-	t.Helper()
-	return func(addr string, auth smtp.Auth, from string, to []string, msg []byte) error {
-		if addr != tt.wantAddr {
-			t.Errorf("SendEmail() addr = %q, want %q", addr, tt.wantAddr)
-		}
-		if (auth != nil) != tt.wantAuth {
-			t.Errorf("SendEmail() auth = %v, want %v", auth != nil, tt.wantAuth)
-		}
-		if from != tt.wantFrom {
-			t.Errorf("SendEmail() from = %q, want %q", from, tt.wantFrom)
-		}
-		if !equalSlice(to, tt.wantTo) {
-			t.Errorf("SendEmail() to = %q, want %q", to, tt.wantTo)
-		}
-		for _, want := range tt.wantBody {
-			if !strings.Contains(string(msg), want) {
-				t.Errorf("SendEmail() body missing %q", want)
-			}
-		}
-		return nil
-	}
-}
-
-func TestSendEmail(t *testing.T) {
+func TestSendEmail(tt *testing.T) {
+	t := check.T(tt)
 	t.Parallel()
 
 	hostname, err := os.Hostname()
@@ -62,18 +26,18 @@ func TestSendEmail(t *testing.T) {
 	defaultFrom := fmt.Sprintf("md-tasks-notify@%s", hostname)
 
 	tests := []struct {
-		name       string
-		setup      func()
-		config     *EmailConfig
-		to         string
-		subject    string
-		content    string
-		wantAddr   string
-		wantAuth   bool
-		wantFrom   string
-		wantTo     []string
-		wantBody   []string // Strings that should be present in email body
-		wantErrStr string
+		name     string
+		setup    func()
+		config   *EmailConfig
+		to       string
+		subject  string
+		content  string
+		wantAddr string
+		wantAuth bool
+		wantFrom string
+		wantTo   []string
+		wantBody []string
+		wantErr  error
 	}{
 		{
 			name: "local without auth",
@@ -166,10 +130,10 @@ func TestSendEmail(t *testing.T) {
 				Port: 25,
 				From: defaultFrom,
 			},
-			to:         "to@example.com",
-			subject:    "Test Subject",
-			content:    "Hello, World!",
-			wantErrStr: "failed to send email: mock error",
+			to:      "to@example.com",
+			subject: "Test Subject",
+			content: "Hello, World!",
+			wantErr: fmt.Errorf("send email: %w", ErrMock),
 		},
 		{
 			name: "from env vars",
@@ -198,7 +162,8 @@ func TestSendEmail(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
+		t.Run(test.name, func(tt *testing.T) {
+			t := check.T(tt)
 			t.Parallel()
 
 			// Apply test setup if any
@@ -206,14 +171,45 @@ func TestSendEmail(t *testing.T) {
 				test.setup()
 			}
 
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockSMTP := NewMockSMTPSender(ctrl)
+
 			// Create Email instance with mock
 			email := NewEmail(test.config)
-			if test.wantErrStr == "" {
-				email.sendMail = checkSendMail(t, &test)
+			email.sendMail = mockSMTP.SendMail
+
+			if test.wantErr == nil {
+				mockSMTP.EXPECT().
+					SendMail(
+						test.wantAddr,
+						gomock.Any(),
+						test.wantFrom,
+						test.wantTo,
+						gomock.Any(),
+					).
+					DoAndReturn(func(_ string, auth smtp.Auth, _ string, _ []string, msg []byte) error {
+						// Verify auth
+						t.Equal((auth != nil), test.wantAuth)
+
+						// Verify email body contains expected strings
+						body := string(msg)
+						for _, want := range test.wantBody {
+							t.Contains(body, want)
+						}
+						return nil
+					})
 			} else {
-				email.sendMail = func(string, smtp.Auth, string, []string, []byte) error {
-					return errMock
-				}
+				mockSMTP.EXPECT().
+					SendMail(
+						gomock.Any(),
+						gomock.Any(),
+						gomock.Any(),
+						gomock.Any(),
+						gomock.Any(),
+					).
+					Return(ErrMock)
 			}
 
 			// Run test
@@ -222,27 +218,11 @@ func TestSendEmail(t *testing.T) {
 			err := email.Send(test.to, test.subject, &buf)
 
 			// Check error
-			if test.wantErrStr == "" {
-				if err != nil {
-					t.Errorf("SendEmail() error = %v, want nil", err)
-				}
+			if test.wantErr == nil {
+				t.Nil(err)
 			} else {
-				if err == nil || err.Error() != test.wantErrStr {
-					t.Errorf("SendEmail() error = %v, want %q", err, test.wantErrStr)
-				}
+				t.True(errors.Is(err, ErrMock))
 			}
 		})
 	}
-}
-
-func equalSlice(a, b []string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
 }

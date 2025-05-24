@@ -1,3 +1,6 @@
+//go:generate -command MOCKGEN sh -c "$(git rev-parse --show-toplevel)/.buildcache/bin/$DOLLAR{DOLLAR}0 \"$DOLLAR{DOLLAR}@\"" mockgen
+//go:generate MOCKGEN -package=$GOPACKAGE -source=$GOFILE -destination=mock.$GOFILE
+
 package main
 
 import (
@@ -14,6 +17,19 @@ const (
 	smtpPort           = 25
 	smtpSubmissionPort = 587
 )
+
+// SMTPSender defines the interface for sending emails.
+type SMTPSender interface {
+	SendMail(addr string, a smtp.Auth, from string, to []string, msg []byte) error
+}
+
+// SMTPFunc implements SMTPSender interface.
+type SMTPFunc func(addr string, a smtp.Auth, from string, to []string, msg []byte) error
+
+// SendMail implements the SMTPSender interface by calling the underlying function.
+func (f SMTPFunc) SendMail(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
+	return f(addr, a, from, to, msg)
+}
 
 // EmailConfig holds configuration for sending emails.
 type EmailConfig struct {
@@ -82,7 +98,7 @@ func (e *Email) Send(to, subject string, content io.Reader) error {
 	// Read content into buffer
 	body, err := io.ReadAll(content)
 	if err != nil {
-		return fmt.Errorf("failed to read email content: %w", err)
+		return fmt.Errorf("read email content: %w", err)
 	}
 
 	// Compose email message
@@ -101,7 +117,7 @@ func (e *Email) Send(to, subject string, content io.Reader) error {
 	addr := fmt.Sprintf("%s:%d", e.cfg.Host, e.cfg.Port)
 
 	if err := e.sendMail(addr, auth, e.cfg.From, []string{to}, []byte(msg)); err != nil {
-		return fmt.Errorf("failed to send email: %w", err)
+		return fmt.Errorf("send email: %w", err)
 	}
 
 	return nil
