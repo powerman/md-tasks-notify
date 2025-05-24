@@ -1,0 +1,10 @@
+---
+description: 
+globs: *.go
+alwaysApply: false
+---
+When handling fatal errors:
+
+- Use `panic` ONLY for errors which happens because of bug in application code and should never happens in any other cases. Errors which can be fixed without changing application's code MUST NOT use `panic`.
+
+- Use `os.Exit`, `log.Fatal` or ANY other similar function which (may) call `os.Exit` ONLY in `main()` function and never in any other code!

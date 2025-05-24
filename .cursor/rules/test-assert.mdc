@@ -1,0 +1,6 @@
+---
+description: 
+globs: *_test.go
+alwaysApply: false
+---
+When writing assertions in tests prefer to use github.com/powerman/check library instead of stdlib testing package or github.com/stretchr/testify library.

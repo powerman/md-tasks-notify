@@ -1,0 +1,6 @@
+---
+description: 
+globs: *.go
+alwaysApply: false
+---
+Avoid using combined `if ..., err := ...; err != nil {` construction, use 2 lines instead.

@@ -1,0 +1,7 @@
+---
+description: 
+globs: *.go
+alwaysApply: false
+---
+- When adding or changing ANY comment (including comment for `//nolint:` directives) in any `*.go` file ALWAYS use full sentences: start with a capital letter and end with period.
+- When you need to add a `//nolint:` directive prefer to add it at the end of relevant line instead of before that line. This might not work in some cases, so if it does not work then do whatever works.
