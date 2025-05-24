@@ -50,6 +50,8 @@ jobs:
     runs-on: 'ubuntu-latest'
     timeout-minutes: 30
     if: github.event_name == 'push'
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -81,8 +83,6 @@ jobs:
             v1-go-with-tools-${{ runner.os }}-
 
       - run: scripts/release
-        permissions:
-          contents: write
         if: github.ref_type == 'tag'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
