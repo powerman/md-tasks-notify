@@ -59,7 +59,7 @@ func readFiles(paths []string) ([]byte, error) {
 		return nil, nil
 	}
 
-	var allData [][]byte
+	var allData [][]byte //nolint:prealloc // Premature optimization.
 	for _, filename := range mdFiles {
 		//nolint:gosec // Reading files provided as command-line arguments is the intended behavior.
 		fileData, err := os.ReadFile(filename)

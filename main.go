@@ -17,11 +17,6 @@ import (
 // TODO: Вывод с указанием из какого файла эти задачи (если есть хоть одна из этого файла).
 // TODO: Отправка вывода на email либо stdout (если -email не задан).
 
-const (
-	// estimatedFileSize is a rough estimate of average file size in bytes for pre-allocation.
-	estimatedFileSize = 1024 // 1 KB
-)
-
 func main() {
 	fromDay := flag.Int("from-day", 0, "Start day relative to today (-1 for yesterday, 0 for today)")
 	toDay := flag.Int("to-day", 1, "End day relative to today (1 for tomorrow)")

@@ -33,11 +33,7 @@ func TestIsMarkdownFile(t *testing.T) {
 
 func TestReadFiles(t *testing.T) {
 	// Create a temporary directory for test files.
-	tmpDir, err := os.MkdirTemp("", "md-tasks-notify-test-*")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.RemoveAll(tmpDir)
+	tmpDir := t.TempDir()
 
 	// Create test files and directories.
 	files := map[string]string{
