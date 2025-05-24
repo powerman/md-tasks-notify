@@ -30,4 +30,4 @@ darwin-x86_64           darwin  amd64
 darwin-arm64            darwin  arm64
 DIST
 
-ghr -u "$GH_USER" -r "$GH_REPO" -replace "$TAG" -generatenotes "$DIST_DIR"
+ghr -u "$GH_USER" -r "$GH_REPO" -replace "$TAG" "$DIST_DIR"
