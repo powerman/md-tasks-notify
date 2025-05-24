@@ -12,5 +12,6 @@ package tools
 //go:generate GOINSTALL github.com/golangci/golangci-lint/cmd/golangci-lint@v1.62.0
 //go:generate GOINSTALL github.com/goreleaser/goreleaser/v2@v2.3.2
 //go:generate GOINSTALL github.com/mattn/goveralls@v0.0.12
+//go:generate GOINSTALL github.com/tcnksm/ghr@v0.17.0
 //go:generate GOINSTALL gotest.tools/gotestsum@v1.12.0
 //go:generate INSTALL-SHELLCHECK 0.10.0
