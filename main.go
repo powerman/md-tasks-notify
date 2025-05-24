@@ -19,6 +19,8 @@ import (
 const emailSubject = "Actual tasks"
 
 func main() {
+	log.SetFlags(0)
+
 	fromDay := flag.Int("from-day", 0, "Start day relative to today (-1 for yesterday, 0 for today)")
 	toDay := flag.Int("to-day", 1, "End day relative to today (1 for tomorrow)")
 	emailTo := flag.String("email", "", "Send output to this email address instead of stdout")
@@ -32,12 +34,12 @@ func main() {
 		data, err = io.ReadAll(os.Stdin)
 	}
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalln("Failed to", err)
 	}
 
 	var buf bytes.Buffer
 	if err := run(*fromDay, *toDay, data, &buf); err != nil {
-		log.Fatal(err)
+		log.Fatalln("Failed to", err)
 	}
 
 	if *emailTo == "" {
@@ -46,7 +48,7 @@ func main() {
 		err = NewEmail(nil).Send(*emailTo, emailSubject, &buf)
 	}
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalln("Failed to", err)
 	}
 }
 
