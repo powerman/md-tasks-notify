@@ -6,8 +6,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"path/filepath"
-	"strings"
 
 	obsidian "github.com/powerman/goldmark-obsidian"
 	"github.com/yuin/goldmark"
@@ -23,61 +21,6 @@ const (
 	// estimatedFileSize is a rough estimate of average file size in bytes for pre-allocation.
 	estimatedFileSize = 1024 // 1 KB
 )
-
-// isMarkdownFile checks if the given path has a .md extension.
-func isMarkdownFile(path string) bool {
-	return strings.HasSuffix(strings.ToLower(path), ".md")
-}
-
-// findMarkdownFiles collects all .md files from a directory recursively.
-func findMarkdownFiles(dir string) ([]string, error) {
-	var files []string
-	err := filepath.Walk(dir, func(path string, fi os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if !fi.IsDir() && isMarkdownFile(fi.Name()) {
-			files = append(files, path)
-		}
-		return nil
-	})
-	return files, err
-}
-
-// readFiles reads and concatenates contents of all provided files and directories.
-// For directories, it recursively reads all files with .md extension.
-func readFiles(paths []string) ([]byte, error) {
-	var mdFiles []string
-	for _, path := range paths {
-		info, err := os.Stat(path)
-		if err != nil {
-			return nil, err
-		}
-
-		if info.IsDir() {
-			files, err := findMarkdownFiles(path)
-			if err != nil {
-				return nil, err
-			}
-			mdFiles = append(mdFiles, files...)
-		} else if isMarkdownFile(path) {
-			mdFiles = append(mdFiles, path)
-		}
-	}
-
-	data := make([]byte, 0, len(mdFiles)*estimatedFileSize) // Pre-allocate with rough estimate per file
-	for _, filename := range mdFiles {
-		//nolint:gosec // Reading files provided as command-line arguments is the intended behavior.
-		fileData, err := os.ReadFile(filename)
-		if err != nil {
-			return nil, err
-		}
-		data = append(data, fileData...)
-		// Add newline between files to ensure proper parsing
-		data = append(data, '\n')
-	}
-	return data, nil
-}
 
 func main() {
 	fromDay := flag.Int("from-day", 0, "Start day relative to today (-1 for yesterday, 0 for today)")
