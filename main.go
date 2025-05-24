@@ -1,7 +1,10 @@
 // Package main provides a tool for filtering and displaying Markdown tasks based on their status and dates.
+//
+// TODO: Вывод с указанием из какого файла эти задачи (если есть хоть одна из этого файла).
 package main
 
 import (
+	"bytes"
 	"flag"
 	"io"
 	"log"
@@ -13,13 +16,12 @@ import (
 	"github.com/yuin/goldmark/util"
 )
 
-// TODO: Поддержка флагов -email.
-// TODO: Вывод с указанием из какого файла эти задачи (если есть хоть одна из этого файла).
-// TODO: Отправка вывода на email либо stdout (если -email не задан).
+const emailSubject = "Actual tasks"
 
 func main() {
 	fromDay := flag.Int("from-day", 0, "Start day relative to today (-1 for yesterday, 0 for today)")
 	toDay := flag.Int("to-day", 1, "End day relative to today (1 for tomorrow)")
+	emailTo := flag.String("email", "", "Send output to this email address instead of stdout")
 	flag.Parse()
 
 	var data []byte
@@ -33,7 +35,16 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = run(*fromDay, *toDay, data, os.Stdout)
+	var buf bytes.Buffer
+	if err := run(*fromDay, *toDay, data, &buf); err != nil {
+		log.Fatal(err)
+	}
+
+	if *emailTo == "" {
+		_, err = io.Copy(os.Stdout, &buf)
+	} else {
+		err = NewEmail(nil).Send(*emailTo, emailSubject, &buf)
+	}
 	if err != nil {
 		log.Fatal(err)
 	}
