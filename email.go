@@ -50,7 +50,11 @@ func NewEmailConfigFromEnv() *EmailConfig {
 		Host:     os.Getenv("SMTP_HOST"),
 		Port:     smtpPort,
 	}
-	port, portErr := strconv.Atoi(os.Getenv("SMTP_PORT"))
+	portStr := os.Getenv("SMTP_PORT")
+	if portStr == "" {
+		portStr = "0"
+	}
+	port, portErr := strconv.Atoi(portStr)
 
 	if cfg.From == "" {
 		cfg.From = defaultFrom
