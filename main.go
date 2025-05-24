@@ -14,7 +14,7 @@ import (
 	"github.com/yuin/goldmark/util"
 )
 
-// getExampleMarkdown returns example Markdown content with dates relative to current date using Go templates
+// getExampleMarkdown returns example Markdown content with dates relative to current date using Go templates.
 func getExampleMarkdown() []byte {
 	type markdownData struct {
 		Yesterday string
@@ -58,9 +58,9 @@ b: x
 
 	today := time.Now()
 	data := markdownData{
-		Yesterday: today.AddDate(0, 0, -1).Format("2006-01-02"),
-		Today:     today.Format("2006-01-02"),
-		Tomorrow:  today.AddDate(0, 0, 1).Format("2006-01-02"),
+		Yesterday: today.AddDate(0, 0, -1).Format(time.DateOnly),
+		Today:     today.Format(time.DateOnly),
+		Tomorrow:  today.AddDate(0, 0, 1).Format(time.DateOnly),
 	}
 
 	tmpl, err := template.New("markdown").Parse(markdownTmpl)
