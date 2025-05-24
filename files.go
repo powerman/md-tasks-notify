@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -14,13 +15,13 @@ func isMarkdownFile(path string) bool {
 }
 
 // findMarkdownFiles collects all .md files from a directory recursively.
-func findMarkdownFiles(dir string) ([]string, error) {
+func findMarkdownFiles(fsys fs.FS, dir string) ([]string, error) {
 	var files []string
-	err := filepath.Walk(dir, func(path string, fi os.FileInfo, err error) error {
+	err := fs.WalkDir(fsys, dir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		if !fi.IsDir() && isMarkdownFile(fi.Name()) {
+		if !d.IsDir() && isMarkdownFile(d.Name()) {
 			files = append(files, path)
 		}
 		return nil
@@ -30,17 +31,17 @@ func findMarkdownFiles(dir string) ([]string, error) {
 
 // readFiles reads and concatenates contents of all provided files and directories.
 // For directories, it recursively reads all files with .md extension.
-func readFiles(paths []string) ([]byte, error) {
+func readFiles(fsys fs.FS, paths []string) ([]byte, error) {
 	var mdFiles []string
 	for _, path := range paths {
-		info, err := os.Stat(path)
+		info, err := fs.Stat(fsys, path)
 		if err != nil {
 			return nil, err
 		}
 
 		switch {
 		case info.IsDir():
-			files, err := findMarkdownFiles(path)
+			files, err := findMarkdownFiles(fsys, path)
 			if err != nil {
 				return nil, err
 			}
@@ -61,8 +62,7 @@ func readFiles(paths []string) ([]byte, error) {
 
 	var allData [][]byte //nolint:prealloc // Premature optimization.
 	for _, filename := range mdFiles {
-		//nolint:gosec // Reading files provided as command-line arguments is the intended behavior.
-		fileData, err := os.ReadFile(filename)
+		fileData, err := fs.ReadFile(fsys, filename)
 		if err != nil {
 			return nil, err
 		}
@@ -70,4 +70,18 @@ func readFiles(paths []string) ([]byte, error) {
 	}
 
 	return bytes.Join(allData, []byte{'\n'}), nil
+}
+
+// ReadFiles is a convenience wrapper around readFiles that uses the OS filesystem.
+func ReadFiles(paths []string) ([]byte, error) {
+	relPaths := make([]string, len(paths))
+	for i, path := range paths {
+		absPath, err := filepath.Abs(path)
+		if err != nil {
+			return nil, err
+		}
+		// Remove leading "/" to make path relative to root for fs.FS.
+		relPaths[i] = strings.TrimPrefix(absPath, "/")
+	}
+	return readFiles(os.DirFS("/"), relPaths)
 }

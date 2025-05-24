@@ -2,9 +2,8 @@ package main
 
 import (
 	"bytes"
-	"os"
-	"path/filepath"
 	"testing"
+	"testing/fstest"
 )
 
 func TestIsMarkdownFile(t *testing.T) {
@@ -32,29 +31,15 @@ func TestIsMarkdownFile(t *testing.T) {
 }
 
 func TestReadFiles(t *testing.T) {
-	// Create a temporary directory for test files.
-	tmpDir := t.TempDir()
-
-	// Create test files and directories.
-	files := map[string]string{
-		"test1.md":         "# Test 1\n- [ ] Task 1",
-		"test2.md":         "# Test 2\n- [ ] Task 2",
-		"subdir/test3.md":  "# Test 3\n- [ ] Task 3",
-		"test4.txt":        "Not a markdown file",
-		"subdir/test5.txt": "Not a markdown file",
-		"empty.md":         "",
-		"subdir2/empty.md": "",
-	}
-
-	for path, content := range files {
-		fullPath := filepath.Join(tmpDir, filepath.FromSlash(path))
-		dir := filepath.Dir(fullPath)
-		if err := os.MkdirAll(dir, 0o755); err != nil {
-			t.Fatal(err)
-		}
-		if err := os.WriteFile(fullPath, []byte(content), 0o644); err != nil {
-			t.Fatal(err)
-		}
+	// Create a virtual filesystem for testing.
+	fsys := fstest.MapFS{
+		"test1.md":         &fstest.MapFile{Data: []byte("# Test 1\n- [ ] Task 1")},
+		"test2.md":         &fstest.MapFile{Data: []byte("# Test 2\n- [ ] Task 2")},
+		"subdir/test3.md":  &fstest.MapFile{Data: []byte("# Test 3\n- [ ] Task 3")},
+		"test4.txt":        &fstest.MapFile{Data: []byte("Not a markdown file")},
+		"subdir/test5.txt": &fstest.MapFile{Data: []byte("Not a markdown file")},
+		"empty.md":         &fstest.MapFile{Data: []byte("")},
+		"subdir2/empty.md": &fstest.MapFile{Data: []byte("")},
 	}
 
 	tests := []struct {
@@ -65,49 +50,49 @@ func TestReadFiles(t *testing.T) {
 	}{
 		{
 			name:        "Single file",
-			paths:       []string{filepath.Join(tmpDir, "test1.md")},
+			paths:       []string{"test1.md"},
 			wantContent: []byte("# Test 1\n- [ ] Task 1"),
 		},
 		{
 			name:        "Multiple files",
-			paths:       []string{filepath.Join(tmpDir, "test1.md"), filepath.Join(tmpDir, "test2.md")},
+			paths:       []string{"test1.md", "test2.md"},
 			wantContent: []byte("# Test 1\n- [ ] Task 1\n# Test 2\n- [ ] Task 2"),
 		},
 		{
 			name:        "Directory",
-			paths:       []string{filepath.Join(tmpDir, "subdir")},
+			paths:       []string{"subdir"},
 			wantContent: []byte("# Test 3\n- [ ] Task 3"),
 		},
 		{
 			name:        "Mixed files and directories",
-			paths:       []string{filepath.Join(tmpDir, "test1.md"), filepath.Join(tmpDir, "subdir")},
+			paths:       []string{"test1.md", "subdir"},
 			wantContent: []byte("# Test 1\n- [ ] Task 1\n# Test 3\n- [ ] Task 3"),
 		},
 		{
 			name:    "Non-existent file",
-			paths:   []string{filepath.Join(tmpDir, "nonexistent.md")},
+			paths:   []string{"nonexistent.md"},
 			wantErr: true,
 		},
 		{
 			name:        "Empty markdown file",
-			paths:       []string{filepath.Join(tmpDir, "empty.md")},
+			paths:       []string{"empty.md"},
 			wantContent: []byte(""),
 		},
 		{
 			name:        "Empty directory",
-			paths:       []string{filepath.Join(tmpDir, "subdir2")},
+			paths:       []string{"subdir2"},
 			wantContent: nil,
 		},
 		{
 			name:        "Non-markdown file",
-			paths:       []string{filepath.Join(tmpDir, "test4.txt")},
+			paths:       []string{"test4.txt"},
 			wantContent: nil,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := readFiles(tt.paths)
+			got, err := readFiles(fsys, tt.paths)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("readFiles() error = %v, wantErr %v", err, tt.wantErr)
 				return

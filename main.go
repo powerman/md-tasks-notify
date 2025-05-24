@@ -25,7 +25,7 @@ func main() {
 	var data []byte
 	var err error
 	if flag.NArg() > 0 {
-		data, err = readFiles(flag.Args())
+		data, err = ReadFiles(flag.Args())
 	} else {
 		data, err = io.ReadAll(os.Stdin)
 	}
