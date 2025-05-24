@@ -21,7 +21,7 @@ func main() {
 	log.SetFlags(0)
 
 	fromDay := flag.Int("from-day", 0, "Start day relative to today (-1 for yesterday, 0 for today)")
-	toDay := flag.Int("to-day", 1, "End day relative to today (1 for tomorrow)")
+	toDay := flag.Int("to-day", 0, "End day relative to today (1 for tomorrow)")
 	emailTo := flag.String("email", "", "Send output to this email address instead of stdout")
 	flag.Parse()
 	if *fromDay > *toDay {
