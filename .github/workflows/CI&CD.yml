@@ -81,6 +81,8 @@ jobs:
             v1-go-with-tools-${{ runner.os }}-
 
       - run: scripts/release
+        permissions:
+          contents: write
         if: github.ref_type == 'tag'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
