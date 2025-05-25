@@ -9,7 +9,7 @@
 package tools
 
 //go:generate GOINSTALL	go.uber.org/mock/mockgen@v0.4.0
-//go:generate GOINSTALL github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.8
+//go:generate GOINSTALL github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.1.6
 //go:generate GOINSTALL github.com/goreleaser/goreleaser/v2@v2.3.2
 //go:generate GOINSTALL github.com/mattn/goveralls@v0.0.12
 //go:generate GOINSTALL github.com/tcnksm/ghr@v0.17.0
