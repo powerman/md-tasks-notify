@@ -97,16 +97,13 @@ func readMarkdownFiles(paths []string) (map[string][]byte, error) {
 
 // readMarkdownFilesOrStdin reads markdown files from paths or stdin.
 func readMarkdownFilesOrStdin(paths []string) (map[string][]byte, error) {
-	var filesData map[string][]byte
-	var err error
 	if len(paths) > 0 {
-		filesData, err = readMarkdownFiles(paths)
-	} else {
-		data, err := io.ReadAll(os.Stdin)
-		if err != nil {
-			return nil, fmt.Errorf("read stdin: %w", err)
-		}
-		filesData = map[string][]byte{"": data}
+		return readMarkdownFiles(paths)
 	}
-	return filesData, err
+
+	data, err := io.ReadAll(os.Stdin)
+	if err != nil {
+		return nil, fmt.Errorf("read stdin: %w", err)
+	}
+	return map[string][]byte{"": data}, nil
 }

@@ -1,12 +1,24 @@
-# Origin: https://github.com/powerman/golangci-lint-strict version 1.61.0
-run:
-  modules-download-mode: readonly
-output:
-  sort-results: true
-  sort-order:
-    - linter
-    - severity
-    - file # Filepath, line, and column.
+# Origin: https://github.com/powerman/golangci-lint-strict version 1.64.8
+linters:
+  enable-all: true
+  disable:
+    - containedctx # Questionable.
+    - contextcheck # Questionable.
+    - cyclop # Prefer gocognit.
+    - dogsled # Questionable (assignment to how many blank identifiers is not okay?).
+    - dupl
+    - forcetypeassert # Questionable (often we actually want panic).
+    - gocyclo # Prefer gocognit.
+    - interfacebloat # Questionable.
+    - ireturn # Questionable (is returning unexported types better?).
+    - lll # Questionable (sometimes long lines improve readability).
+    - nlreturn # Questionable (often no blank line before return improve readability).
+    - nonamedreturns # Questionable (named return act as a documentation).
+    - perfsprint # Questionable (force performance over readability and sometimes safety).
+    - tenv # Deprecated.
+    - varnamelen
+    - wrapcheck # Questionable (see https://github.com/tomarrell/wrapcheck/issues/1).
+    - wsl # Questionable (too much style differences, hard to consider).
 linters-settings:
   decorder:
     disable-init-func-first-check: false # `init` funcs have to be declared before all other functions.
@@ -14,6 +26,8 @@ linters-settings:
     rules:
       main:
         deny:
+          - pkg: math/rand$
+            desc: use math/rand/v2
           - pkg: github.com/prometheus/common/log
             desc: Should be replaced by standard lib log/slog package
           - pkg: github.com/sirupsen/logrus
@@ -43,6 +57,8 @@ linters-settings:
   exhaustruct:
     include:
       - ^$ # Only check structs which domain.tld/package/name.structname match this regexp.
+  fatcontext:
+    check-struct-pointers: true
   forbidigo:
     forbid:
       - ^print(ln)?$
@@ -55,6 +71,11 @@ linters-settings:
       - standard # Standard section: captures all standard packages.
       - default # Default section: contains all imports that could not be matched to another section type.
       - localmodule # Local module section: contains all local packages. This section is not present unless explicitly enabled.
+    no-inline-comments: true
+    no-prefix-comments: true
+  gochecksumtype:
+    default-signifies-exhaustive: false
+    include-shared-interfaces: true
   gocognit:
     min-complexity: 20
   goconst:
@@ -116,8 +137,15 @@ linters-settings:
         strict: true
   grouper:
     import-require-single-import: true # Use a single 'import' declaration.
+  iface:
+    enable:
+      - identical # Identifies interfaces in the same package that have identical method sets.
+      - unused # Identifies interfaces that are not used anywhere in the same package where the interface is defined.
+      - opaque # Identifies functions that return interfaces, but the actual returned value is always a single concrete implementation.
   importas:
     alias:
+      - pkg: errors
+        alias: ""
       - pkg: net/url
         alias: urlpkg
   loggercheck:
@@ -127,6 +155,8 @@ linters-settings:
     mode: restricted # Check only comments.
   nestif:
     min-complexity: 4
+  nilnil:
+    detect-opposite: true
   nolintlint:
     require-explanation: true # Disable linters this way: //nolint:first,second // Reason here.
     require-specific: true # Do not allow //nolint without specific linter name(s).
@@ -187,6 +217,8 @@ linters-settings:
       - name: errorf
       - name: exported
       - name: file-header
+      - name: file-length-limit
+      - name: filename-format
       - name: flag-parameter
       - name: function-length
         disabled: true # Duplicates funlen linter.
@@ -216,6 +248,7 @@ linters-settings:
       - name: range-val-in-closure
       - name: receiver-naming
       - name: redefines-builtin-id
+      - name: redundant-build-tag
       - name: redundant-import-alias
       - name: string-format
         arguments:
@@ -242,6 +275,7 @@ linters-settings:
       - name: unused-parameter
       - name: unused-receiver
       - name: use-any
+      - name: use-errors-new
       - name: useless-break
       - name: var-declaration
       - name: var-naming
@@ -273,7 +307,6 @@ linters-settings:
     strict: true
   tagliatelle:
     case:
-      use-field-name: true
       rules:
         json: snake
         yaml: kebab
@@ -283,6 +316,7 @@ linters-settings:
         avro: snake
         mapstructure: kebab
         envconfig: upperSnake
+        whatever: snake
   testifylint:
     enable-all: true
   testpackage:
@@ -298,28 +332,6 @@ linters-settings:
     default-rpc-path: true
     sql-isolation-level: true
     tls-signature-scheme: true
-linters:
-  enable-all: true
-  disable:
-    - containedctx # Questionable.
-    - contextcheck # Questionable.
-    - cyclop # Prefer gocognit.
-    - dogsled # Questionable (assignment to how many blank identifiers is not okay?).
-    - dupl
-    - execinquery # Deprecated.
-    - exportloopref # Deprecated.
-    - forcetypeassert # Questionable (often we actually want panic).
-    - gocyclo # Prefer gocognit.
-    - gomnd # Deprecated.
-    - interfacebloat # Questionable.
-    - ireturn # Questionable (is returning unexported types better?).
-    - lll # Questionable (sometimes long lines improve readability).
-    - nlreturn # Questionable (often no blank line before return improve readability).
-    - nonamedreturns # Questionable (named return act as a documentation).
-    - perfsprint # Questionable (force performance over readability and sometimes safety).
-    - varnamelen
-    - wrapcheck # Questionable (see https://github.com/tomarrell/wrapcheck/issues/1).
-    - wsl # Questionable (too much style differences, hard to consider).
 issues:
   exclude:
     - declaration of "(log|err|ctx)" shadows
@@ -358,5 +370,14 @@ issues:
     - \.[\w-]+\.go$ # Use this pattern to name auto-generated files.
   max-issues-per-linter: 0
   max-same-issues: 0
+output:
+  sort-results: true
+  sort-order:
+    - linter
+    - severity
+    - file # Filepath, line, and column.
+run:
+  relative-path-mode: gomod
+  modules-download-mode: readonly
 severity:
   default-severity: error

@@ -17,7 +17,6 @@ var ErrMock = errors.New("mock error")
 
 func TestSendEmail(tt *testing.T) {
 	t := check.T(tt)
-	t.Parallel()
 
 	hostname, err := os.Hostname()
 	if err != nil {
@@ -27,7 +26,7 @@ func TestSendEmail(tt *testing.T) {
 
 	tests := []struct {
 		name     string
-		setup    func()
+		setup    func(*testing.T)
 		config   *EmailConfig
 		to       string
 		subject  string
@@ -137,13 +136,13 @@ func TestSendEmail(tt *testing.T) {
 		},
 		{
 			name: "from env vars",
-			setup: func() {
-				os.Clearenv()
-				os.Setenv("SMTP_HOST", "smtp.example.com")
-				os.Setenv("SMTP_PORT", "2525")
-				os.Setenv("SMTP_USERNAME", "user")
-				os.Setenv("SMTP_PASSWORD", "pass")
-				os.Setenv("SMTP_FROM", "from@example.com")
+			setup: func(tt *testing.T) {
+				tt.Helper()
+				tt.Setenv("SMTP_HOST", "smtp.example.com")
+				tt.Setenv("SMTP_PORT", "2525")
+				tt.Setenv("SMTP_USERNAME", "user")
+				tt.Setenv("SMTP_PASSWORD", "pass")
+				tt.Setenv("SMTP_FROM", "from@example.com")
 			},
 			to:       "to@example.com",
 			subject:  "Test Subject",
@@ -164,11 +163,10 @@ func TestSendEmail(tt *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(tt *testing.T) {
 			t := check.T(tt)
-			t.Parallel()
 
 			// Apply test setup if any
 			if test.setup != nil {
-				test.setup()
+				test.setup(tt)
 			}
 
 			ctrl := gomock.NewController(t)
