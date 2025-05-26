@@ -37,7 +37,8 @@ func NewActualTasksRenderer(dayFrom, dayTo int) renderer.NodeRenderer {
 		panic(fmt.Sprintf("dayFrom %d must be <= dayTo %d", dayFrom, dayTo))
 	}
 	const day = 24 * time.Hour
-	now := time.Now().Truncate(day)
+	now := time.Now()
+	now = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 	return &FilteredTasksRenderer{
 		StatusType: map[obsast.PlugTasksStatusType]bool{
 			obsast.PlugTasksStatusTypeTODO:       true,
