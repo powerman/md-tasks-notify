@@ -46,23 +46,29 @@ jobs:
           printf '{"total":{"lines":{"pct":0},"statements":{"pct":%s},"functions":{"pct":0},"branches":{"pct":0},"branchesTrue":{"pct":0}}}' \
             $total >.buildcache/coverage-summary.json
 
-      - name: Switch to 'gh-badges' branch (create if it doesn't exist)
+      - name: Create Coverage Badge
+        uses: jaywcjlove/coverage-badges-cli@v2.1.0
+        with:
+          source: .buildcache/coverage-summary.json
+          output: .buildcache/coverage.svg
+          jsonPath: total.statements.pct
+
+      - uses: fregante/setup-git-user@v2
+
+      - name: Update Coverage Badge
         run: |
           if git fetch --depth=1 origin gh-badges; then
             git checkout gh-badges
           else
             git switch --orphan gh-badges || { git status; git diff; exit 1; }
-            git config --global user.name "${GITHUB_REPOSITORY_OWNER}"
-            git config --global user.email "${GITHUB_REPOSITORY_OWNER}@users.noreply.github.com"
             git commit --allow-empty -m "Initial commit for gh-badges"
+            git push --set-upstream origin gh-badges
           fi
-
-      - name: Generate coverage badges
-        uses: jpb06/coverage-badges-action@v1.3.1
-        with:
-          coverage-summary-path: '.buildcache/coverage-summary.json'
-          target-branch: 'gh-badges'
-          badges-labels-prefix: 'coverage'
+          mkdir -p badges
+          cp .buildcache/coverage.svg badges/
+          git add badges/coverage.svg
+          git commit -m 'docs: update coverage badge'
+          git push
 
   build-and-release:
     needs: test
