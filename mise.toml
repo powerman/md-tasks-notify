@@ -13,8 +13,6 @@ go = 'latest'
 #--- Test & Lint
 # 'go test' runner with output optimized for humans.
 'ubi:gotestyourself/gotestsum' = 'latest'
-# Go integration for Coveralls.io continuous code coverage tracking system.
-'go:github.com/mattn/goveralls' = 'latest'
 # A static analysis tool for shell scripts.
 shellcheck = 'latest'
 # Fast linters runner for Go.
@@ -60,11 +58,6 @@ run = 'go tool cover -func={{vars.cover}} | tail -n 1 | xargs echo'
 description = 'Show Go test coverage in a browser'
 depends = 'cover:go:generate'
 run = 'go tool cover -html={{vars.cover}}'
-
-[tasks.'cover:go:coveralls']
-description = 'Report Go test coverage to coveralls.io'
-depends = 'cover:go:generate'
-run = 'goveralls -coverprofile={{vars.cover}} -service=GitHub'
 
 [tasks.'cover:go:generate']
 hide = true
