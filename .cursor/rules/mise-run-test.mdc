@@ -1,0 +1,8 @@
+---
+description:
+globs: *.go,scripts/*
+alwaysApply: false
+---
+When ready to return a final answer which include modifications to ANY of `*.go` or
+`scripts/*` files ALWAYS run `mise run test` (it will execute linters and tests for a whole
+project) and then fix any lint issues or failed tests you'll get from that command.

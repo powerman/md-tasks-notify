@@ -1,5 +1,4 @@
-//go:generate -command MOCKGEN sh -c "$(git rev-parse --show-toplevel)/.buildcache/bin/$DOLLAR{DOLLAR}0 \"$DOLLAR{DOLLAR}@\"" mockgen
-//go:generate MOCKGEN -package=$GOPACKAGE -source=$GOFILE -destination=mock.$GOFILE
+//go:generate mise exec -- mockgen -package=$GOPACKAGE -source=$GOFILE -destination=mock.$GOFILE
 
 package main
 

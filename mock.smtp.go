@@ -20,6 +20,7 @@ import (
 type MockSMTPSender struct {
 	ctrl     *gomock.Controller
 	recorder *MockSMTPSenderMockRecorder
+	isgomock struct{}
 }
 
 // MockSMTPSenderMockRecorder is the mock recorder for MockSMTPSender.
