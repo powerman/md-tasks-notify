@@ -5,7 +5,6 @@ inputs:
   total:
     description: 'Coverage percentage (integer)'
     required: true
-    type: number
   branch:
     description: 'Branch to store the badge'
     required: false
