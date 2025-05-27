@@ -169,6 +169,7 @@ personal-tasks.md:
 To send notifications via email, you need to configure SMTP settings through environment variables:
 
 ```sh
+export SMTP_FROM="First Last <your-email@gmail.com>"
 export SMTP_HOST=smtp.gmail.com
 export SMTP_PORT=587
 export SMTP_USERNAME=your-email@gmail.com
