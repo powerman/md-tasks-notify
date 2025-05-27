@@ -40,18 +40,17 @@ jobs:
 
       - run: mise run test
 
-      - name: Generate JSON coverage summary for badges
+      - name: Generate Coverage Badge
         run: |
           total="$(mise run -q cover:go:total | tail -n 1 | sed -e 's/.*\s\([0-9]\+\).*/\1/')"
-          printf '{"total":{"lines":{"pct":0},"statements":{"pct":%s},"functions":{"pct":0},"branches":{"pct":0},"branchesTrue":{"pct":0}}}' \
-            $total >.buildcache/coverage-summary.json
-
-      - name: Create Coverage Badge
-        uses: jaywcjlove/coverage-badges-cli@v2.1.0
-        with:
-          source: .buildcache/coverage-summary.json
-          output: .buildcache/coverage.svg
-          jsonPath: total.statements.pct
+          if [ "$total" -ge 90 ]; then color=brightgreen
+          elif [ "$total" -ge 80 ]; then color=green
+          elif [ "$total" -ge 70 ]; then color=yellowgreen
+          elif [ "$total" -ge 60 ]; then color=yellow
+          elif [ "$total" -ge 50 ]; then color=orange
+          else color=red
+          fi
+          curl -o .buildcache/coverage.svg "https://img.shields.io/badge/coverage-${total}%25-${color}"
 
       - uses: fregante/setup-git-user@v2
 
