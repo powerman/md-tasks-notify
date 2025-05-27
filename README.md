@@ -100,7 +100,7 @@ Add to your crontab to receive daily notifications at 9 AM:
 
 ## Supported Task Formats
 
-This tool primarily supports the **Tasks Emoji Format** used by the Obsidian [Tasks plugin](https://publish.obsidian.md/tasks/Introduction).
+This tool primarily supports the **Tasks Emoji Format** used by the Obsidian [Tasks plugin](https://publish.obsidian.md/tasks/Reference/Task+Formats/Tasks+Emoji+Format).
 
 ### Task Status Examples
 
@@ -115,15 +115,16 @@ This tool primarily supports the **Tasks Emoji Format** used by the Obsidian [Ta
 
 ```markdown
 - [ ] Review documentation 📅 2024-01-15
-- [ ] Call client ⏰ 2024-01-15
+- [ ] Call client ⏳ 2024-01-15
 - [ ] Submit report 🛫 2024-01-10 📅 2024-01-15
 ```
 
 #### Date Emoji
 
-- 📅 Due date
-- ⏰ Scheduled date
-- 🛫 Start date
+- 📅 [Due date](https://publish.obsidian.md/tasks/Getting+Started/Dates#Due+date)
+- ⏳ [Scheduled date](https://publish.obsidian.md/tasks/Getting+Started/Dates#Scheduled+date)
+- 🛫 [Start date](https://publish.obsidian.md/tasks/Getting+Started/Dates#Start+date)
+- ... there are many more date emojis available, but this tool only handles the ones listed above.
 
 ## Examples
 
@@ -136,7 +137,7 @@ This tool primarily supports the **Tasks Emoji Format** used by the Obsidian [Ta
 
 - [x] Setup project ✅ 2024-01-10
 - [ ] Write documentation 📅 2024-01-15
-- [ ] Review code ⏰ 2024-01-15
+- [ ] Review code ⏳ 2024-01-15
 - [ ] Deploy to staging 📅 2024-01-20
 - [-] Old feature ❌ 2024-01-05
 ```
@@ -147,7 +148,7 @@ This tool primarily supports the **Tasks Emoji Format** used by the Obsidian [Ta
 # Personal Tasks
 
 - [ ] Buy groceries 📅 2024-01-15
-- [ ] Call dentist ⏰ 2024-01-16
+- [ ] Call dentist ⏳ 2024-01-16
 ```
 
 ### Example Output
@@ -157,7 +158,7 @@ When run on 2024-01-15 with default settings:
 ```
 project-tasks.md:
 - [ ] Write documentation 📅 2024-01-15
-- [ ] Review code ⏰ 2024-01-15
+- [ ] Review code ⏳ 2024-01-15
 
 personal-tasks.md:
 - [ ] Buy groceries 📅 2024-01-15
