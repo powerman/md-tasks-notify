@@ -23,7 +23,7 @@ runs:
       run: |
         echo "ref=$(git rev-parse --abbrev-ref HEAD)" >> "$GITHUB_ENV"
 
-    - name: Switch to a target branch (create it if not exists)
+    - name: Switch to target branch (create it if not exists)
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
@@ -34,6 +34,7 @@ runs:
           git switch --orphan "${{ inputs.branch }}" || { git status; git diff; exit 1; }
           git commit --allow-empty -m "Update for ${{ inputs.branch }}" && git push -u origin "${{ inputs.branch }}"
         fi
+        git stash push -u -m "coverage-badge-action-stash"
 
     - name: Generate Coverage Badge
       shell: bash
@@ -50,4 +51,8 @@ runs:
 
     - name: Return to original branch
       shell: bash
-      run: git checkout "$ref"
+      run: |
+        if git stash list | grep -q "coverage-badge-action-stash"; then
+          git stash pop
+        fi
+        git checkout "$ref"
