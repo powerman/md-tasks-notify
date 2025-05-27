@@ -1,0 +1,54 @@
+name: 'Coverage Badge'
+description: 'Generates and updates coverage badge in a separate branch'
+
+inputs:
+  total:
+    description: 'Coverage percentage (integer)'
+    required: true
+    type: number
+  branch:
+    description: 'Branch to store the badge'
+    required: false
+    default: 'gh-badges'
+  token:
+    description: 'GitHub token for git operations'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: fregante/setup-git-user@v2
+
+    - name: Save current git ref
+      shell: bash
+      run: |
+        echo "ref=$(git rev-parse --abbrev-ref HEAD)" >> "$GITHUB_ENV"
+
+    - name: Switch to a target branch (create it if not exists)
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.token }}
+      run: |
+        if git fetch --depth=1 origin "${{ inputs.branch }}"; then
+          git checkout "${{ inputs.branch }}"
+        else
+          git switch --orphan "${{ inputs.branch }}" || { git status; git diff; exit 1; }
+          git commit --allow-empty -m "Update for ${{ inputs.branch }}" && git push -u origin "${{ inputs.branch }}"
+        fi
+
+    - name: Generate Coverage Badge
+      shell: bash
+      run: |
+        if [ "${{ inputs.total }}" -ge 90 ]; then color=brightgreen
+        elif [ "${{ inputs.total }}" -ge 80 ]; then color=green
+        elif [ "${{ inputs.total }}" -ge 70 ]; then color=yellowgreen
+        elif [ "${{ inputs.total }}" -ge 60 ]; then color=yellow
+        elif [ "${{ inputs.total }}" -ge 50 ]; then color=orange
+        else color=red
+        fi
+        curl -o coverage.svg "https://img.shields.io/badge/coverage-${{ inputs.total }}%25-${color}"
+        git add . && git commit --amend --date=now --no-edit && git push -f
+
+    - name: Return to original branch
+      shell: bash
+      run: git checkout "$ref"

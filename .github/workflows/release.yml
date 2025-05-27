@@ -1,0 +1,37 @@
+name: release
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write # To create a GitHub release.
+
+jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+
+  build-and-release:
+    needs: test
+
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: jdx/mise-action@v2
+
+      - name: Turnstyle
+        uses: softprops/turnstyle@v2
+        with:
+          poll-interval-seconds: 3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: ./.github/actions/go-cache
+
+      - run: scripts/release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,43 @@
+name: test
+
+on:
+  workflow_dispatch:
+  workflow_call:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
+# Cancel testing of a previous commit for the same branch.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write # To update gh-badges branch.
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: jdx/mise-action@v2
+      - run: mise ls
+
+      - uses: ./.github/actions/go-cache
+
+      - run: mise run test
+
+      - name: Get Coverage Total
+        id: coverage
+        run: |
+          total=$(mise run -q cover:go:total | tail -n 1 | sed -e 's/.*\s\([0-9]\+\).*/\1/')
+          echo "total=$total" >> "$GITHUB_OUTPUT"
+
+      - uses: ./.github/actions/coverage-badge
+        with:
+          total: ${{ steps.coverage.outputs.total }}
+          token: ${{ secrets.GITHUB_TOKEN }}
