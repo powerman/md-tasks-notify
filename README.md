@@ -6,21 +6,170 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/powerman/md-tasks-notify)](https://goreportcard.com/report/github.com/powerman/md-tasks-notify)
 [![Release](https://img.shields.io/github/v/release/powerman/md-tasks-notify)](https://github.com/powerman/md-tasks-notify/releases/latest)
 
-The tool to send daily notifications for actual tasks found in markdown files.
+A command-line tool to send daily notifications for actual tasks found in markdown files.
 
-## Supported task formats
+## Table of Contents
 
-Initially this tool was designed to support "Tasks Emoji Format" used by Obsidian plugin
-[Tasks](https://publish.obsidian.md/tasks/Introduction).
-Support for other formats may be added later - open an issue if you need one.
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Supported Task Formats](#supported-task-formats)
+- [Examples](#examples)
+- [Configuration](#configuration)
+
+## Features
+
+- 📅 Filter tasks by date (today, yesterday, tomorrow, or custom ranges).
+- 📧 Send notifications via email or output to stdout.
+- 📝 Support for Obsidian Tasks emoji format.
+- 🔍 Process multiple markdown files and whole directories.
+
+## Installation
+
+### From releases
+
+Download the latest binary from the [releases page](https://github.com/powerman/md-tasks-notify/releases/latest).
+
+### Using go install
+
+```sh
+go install github.com/powerman/md-tasks-notify@latest
+```
+
+### From source
+
+```sh
+git clone https://github.com/powerman/md-tasks-notify.git
+cd md-tasks-notify
+go build -o md-tasks-notify .
+```
 
 ## Usage
 
-Use this command as a cron task to run daily:
-
-```sh
-md-tasks-notify -email user@example.com path/to/tasks/*.md
+```
+Usage of md-tasks-notify:
+  -email string
+        Send output to this email address instead of stdout
+  -from-day int
+        Start day relative to today (-1 for yesterday, 0 for today)
+  -to-day int
+        End day relative to today (1 for tomorrow)
 ```
 
-By default it'll send notification for "not done" tasks either scheduled or due today.
-Optionally it can include tasks to be done in the near future and past due tasks.
+### Basic Usage
+
+Send daily notifications for tasks due today:
+
+```sh
+md-tasks-notify -email user@example.com path/to/*-tasks.md
+```
+
+Output to stdout (useful for testing or sending to another tool):
+
+```sh
+md-tasks-notify path/to/tasks_dir/
+```
+
+### Advanced Usage
+
+Include past due tasks (yesterday) and future tasks (tomorrow):
+
+```sh
+md-tasks-notify -from-day -1 -to-day 1 -email user@example.com ~/notes/
+```
+
+Get tasks from yesterday only:
+
+```sh
+md-tasks-notify -from-day -1 -to-day -1 ~/notes/
+```
+
+Process tasks from stdin (useful to get output without file names):
+
+```sh
+cat *-tasks.md | md-tasks-notify -email user@example.com
+```
+
+### Cron Setup
+
+Add to your crontab to receive daily notifications at 9 AM:
+
+```cron
+0 9 * * * md-tasks-notify -email your@email.com /path/to/notes/
+```
+
+## Supported Task Formats
+
+This tool primarily supports the **Tasks Emoji Format** used by the Obsidian [Tasks plugin](https://publish.obsidian.md/tasks/Introduction).
+
+### Task Status Examples
+
+```markdown
+- [ ] Undone task
+- [x] Completed task
+- [/] In progress task
+- [-] Cancelled task
+```
+
+### Task with Dates
+
+```markdown
+- [ ] Review documentation 📅 2024-01-15
+- [ ] Call client ⏰ 2024-01-15
+- [ ] Submit report 🛫 2024-01-10 📅 2024-01-15
+```
+
+#### Date Emoji
+
+- 📅 Due date
+- ⏰ Scheduled date
+- 🛫 Start date
+
+## Examples
+
+### Example Input
+
+`project-tasks.md`:
+
+```markdown
+# Project Tasks
+
+- [x] Setup project ✅ 2024-01-10
+- [ ] Write documentation 📅 2024-01-15
+- [ ] Review code ⏰ 2024-01-15
+- [ ] Deploy to staging 📅 2024-01-20
+- [-] Old feature ❌ 2024-01-05
+```
+
+`personal-tasks.md`:
+
+```markdown
+# Personal Tasks
+
+- [ ] Buy groceries 📅 2024-01-15
+- [ ] Call dentist ⏰ 2024-01-16
+```
+
+### Example Output
+
+When run on 2024-01-15 with default settings:
+
+```
+project-tasks.md:
+- [ ] Write documentation 📅 2024-01-15
+- [ ] Review code ⏰ 2024-01-15
+
+personal-tasks.md:
+- [ ] Buy groceries 📅 2024-01-15
+```
+
+## Configuration
+
+To send notifications via email, you need to configure SMTP settings through environment variables:
+
+```sh
+export SMTP_HOST=smtp.gmail.com
+export SMTP_PORT=587
+export SMTP_USERNAME=your-email@gmail.com
+export SMTP_PASSWORD=your-app-password
+```
