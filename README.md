@@ -1,7 +1,7 @@
 # md-tasks-notify
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/powerman/md-tasks-notify.svg)](https://pkg.go.dev/github.com/powerman/md-tasks-notify)
-[![CI/CD](https://github.com/powerman/md-tasks-notify/actions/workflows/CI&CD.yml/badge.svg)](https://github.com/powerman/md-tasks-notify/actions/workflows/CI&CD.yml)
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/powerman/md-tasks-notify/CI%26CD.yml?logo=github&label=build)](https://github.com/powerman/md-tasks-notify/actions/workflows/CI&CD.yml)
 [![Coverage Status](https://raw.githubusercontent.com/powerman/md-tasks-notify/gh-badges/coverage.svg)](https://github.com/powerman/md-tasks-notify/actions/workflows/CI&CD.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/powerman/md-tasks-notify)](https://goreportcard.com/report/github.com/powerman/md-tasks-notify)
 [![Release](https://img.shields.io/github/v/release/powerman/md-tasks-notify)](https://github.com/powerman/md-tasks-notify/releases/latest)
