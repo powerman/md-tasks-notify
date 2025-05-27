@@ -61,14 +61,11 @@ jobs:
             git checkout gh-badges
           else
             git switch --orphan gh-badges || { git status; git diff; exit 1; }
-            git commit --allow-empty -m "Initial commit for gh-badges"
-            git push --set-upstream origin gh-badges
+            echo '/.buildcache/' > .gitignore && git add .gitignore
+            git commit -a -m "Update for gh-badges" && git push -u origin gh-badges
           fi
-          mkdir -p badges
-          cp .buildcache/coverage.svg badges/
-          git add badges/coverage.svg
-          git commit -m 'docs: update coverage badge'
-          git push
+          cp .buildcache/coverage.svg .
+          git add . && git commit --amend --date=now --no-edit && git push -f
 
   build-and-release:
     needs: test
