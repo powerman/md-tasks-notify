@@ -1,7 +1,5 @@
 #!/bin/bash
-export PATH="$PWD/.buildcache/bin:$PATH"
 set -x -e -o pipefail
-go generate 0-tools.go
 
 DIST_DIR=bin
 TAG=$(git describe --match='v*' --exact-match --tags)
