@@ -113,7 +113,7 @@ jobs:
 
       - name: Sign binary with cosign
         run: |
-          sudo chown -R $(id -u): ${{ steps.build.outputs.release_asset_dir }}
+          sudo chown -R $(id -u) ${{ steps.build.outputs.release_asset_dir }}
           cd ${{ steps.build.outputs.release_asset_dir }}
           ls -al
           rm -f md-tasks-notify
