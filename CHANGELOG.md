@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.10] - 2025-05-29
+
+### 🔔 Changed
+
+- 3 by @powerman in [64f8f2d]
+
+[0.1.10]: https://github.com/powerman/md-tasks-notify/compare/v0.1.9..v0.1.10
+[64f8f2d]: https://github.com/powerman/md-tasks-notify/commit/64f8f2d10276f1a8e1672489f97bd4278af17efb
+
 ## [0.1.9] - 2025-05-29
 
 [0.1.9]: https://github.com/powerman/md-tasks-notify/compare/v0.1.8..v0.1.9
