@@ -17,6 +17,8 @@ go = 'latest'
 shellcheck = 'latest'
 # Fast linters runner for Go.
 golangci-lint = 'latest'
+# Run your GitHub Actions locally
+act = 'latest'
 
 #--- Release
 # A highly customizable Changelog Generator that follows Conventional Commit specifications.
