@@ -1,3 +1,7 @@
+[tools.gh]
+version = "2.73.0"
+backend = "aqua:cli/cli"
+
 [tools.git-cliff]
 version = "2.8.0"
 backend = "aqua:orhun/git-cliff"
@@ -20,13 +24,6 @@ backend = "aqua:golangci/golangci-lint"
 [tools.golangci-lint.checksums]
 "golangci-lint-2.1.6-linux-amd64.tar.gz" = "sha256:e55e0eb515936c0fbd178bce504798a9bd2f0b191e5e357768b18fd5415ee541"
 
-[tools.goreleaser]
-version = "2.9.0"
-backend = "aqua:goreleaser/goreleaser"
-
-[tools.goreleaser.checksums]
-"goreleaser_Linux_x86_64.tar.gz" = "sha256:a066fcd713684abed0d750d7559f1a5d794fa2faa8e8f1ad2eecec8c373668a7"
-
 [tools.shellcheck]
 version = "0.10.0"
 backend = "ubi:koalaman/shellcheck"
@@ -34,7 +31,3 @@ backend = "ubi:koalaman/shellcheck"
 [tools."ubi:gotestyourself/gotestsum"]
 version = "1.12.2"
 backend = "ubi:gotestyourself/gotestsum"
-
-[tools."ubi:tcnksm/ghr"]
-version = "0.17.0"
-backend = "ubi:tcnksm/ghr"

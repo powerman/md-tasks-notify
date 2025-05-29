@@ -1,0 +1,142 @@
+name: release-plz
+
+permissions:
+  contents: write # To create a release tag.
+  id-token: write # To cosign released files.
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'CHANGELOG.md'
+
+concurrency:
+  group: release-plz
+
+jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+
+  create-draft-release:
+    needs: test
+    # Do not run in a repo forks and non-release commits.
+    if: "${{ github.repository_owner == 'powerman' && contains(github.event.head_commit.message, 'chore: release') }}"
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.bump.outputs.version }}
+      changelog: ${{ steps.bump.outputs.changelog }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Need full git history for git-cliff to determine next version and build changelog.
+          fetch-depth: 0
+
+      - uses: jdx/mise-action@v2
+
+      - uses: fregante/setup-git-user@v2
+
+      - name: Get bumped version and unreleased changelog
+        id: bump
+        run: |
+          version=$(git-cliff --bumped-version)
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          git-cliff --tag "$version" --unreleased --strip all | tail -n +3 >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create and push tag
+        run: |
+          git tag "${{ steps.bump.outputs.version }}" -m "${{ steps.bump.outputs.changelog }}"
+          git push origin "${{ steps.bump.outputs.version }}"
+
+      - name: Create draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.bump.outputs.version }}
+          body: ${{ steps.bump.outputs.changelog }}
+          draft: true
+
+  build-and-upload:
+    needs: create-draft-release
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: 386
+          - goos: linux
+            goarch: arm
+            goarm: 6
+          - goos: linux
+            goarch: arm
+            goarm: 7
+          - goos: linux
+            goarch: arm64
+          - goos: linux
+            goarch: ppc64le
+          - goos: darwin
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+          - goos: windows
+            goarch: amd64
+          - goos: windows
+            goarch: 386
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build binary
+        id: build
+        uses: wangyoucao577/go-release-action@v1.52
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          goos: ${{ matrix.goos }}
+          goarch: ${{ matrix.goarch }}
+          goarm: ${{ matrix.goarm }}
+          project_path: "."
+          binary_name: ${{ github.event.repository.name }}
+          executable_compression: upx
+          md5sum: false
+          compress_assets: 'OFF'
+          release_tag: ${{ needs.create-draft-release.outputs.version }}
+          overwrite: true
+          upload: false
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign binary with cosign
+        run: |
+          cd ${{ steps.build.outputs.release_asset_dir }}
+          for file in *; do
+            if [[ ! "$file" =~ \.(sha256|md5)$ ]]; then
+              echo "Signing $file..."
+              cosign sign-blob --yes "$file" --output-signature "${file}.sig"
+            fi
+          done
+
+      - name: Upload files to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.create-draft-release.outputs.version }}
+          body: ${{ needs.create-draft-release.outputs.changelog }}
+          draft: true
+          files: ${{ steps.build.outputs.release_asset_dir }}/*
+
+  finalize-release:
+    needs: [create-draft-release, build-and-upload]
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - name: Make release non-draft
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.create-draft-release.outputs.version }}
+          body: ${{ needs.create-draft-release.outputs.changelog }}
+          draft: false

@@ -1,0 +1,66 @@
+name: release-plz-pr
+
+permissions:
+  contents: write # To create/update a release-plz branch.
+  pull-requests: write # To create/update a PR from release-plz branch.
+
+on:
+  push:
+    branches:
+      - master
+
+concurrency:
+  group: release-plz-pr
+
+jobs:
+  release-plz-pr:
+    # Do not run in a repo forks.
+    if: ${{ github.repository_owner == 'powerman' }}
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Need full git history for git-cliff to determine next version and build changelog.
+          fetch-depth: 0
+
+      - uses: jdx/mise-action@v2
+
+      - uses: fregante/setup-git-user@v2
+
+      - name: Get bumped version and unreleased changelog
+        id: bump
+        run: |
+          version=$(git-cliff --bumped-version)
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          git-cliff --tag "$version" --unreleased --strip all | tail -n +3 >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create or update release-plz branch
+        run: |
+          git checkout -B release-plz
+
+          git-cliff --tag "${{ steps.bump.outputs.version }}" -o CHANGELOG.md
+          git add CHANGELOG.md
+
+          git commit --allow-empty -m "chore: release ${{ steps.bump.outputs.version }}"
+          git push origin release-plz --force
+
+      - name: Create or update PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          args=(
+              --title "chore: release ${{ steps.bump.outputs.version }}"
+              --body "${{ steps.bump.outputs.changelog }}"
+          )
+          existing_pr=$(gh pr list --state open --head release-plz --json number --jq '.[0].number')
+          if [ -z "$existing_pr" ]; then
+            echo "Creating new PR"
+            gh pr create --head release-plz --base master "${args[@]}"
+          else
+            echo "Updating existing PR #$existing_pr"
+            gh pr edit "$existing_pr" "${args[@]}"
+          fi

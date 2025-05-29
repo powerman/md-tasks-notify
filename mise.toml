@@ -21,10 +21,8 @@ golangci-lint = 'latest'
 #--- Release
 # A highly customizable Changelog Generator that follows Conventional Commit specifications.
 git-cliff = 'latest'
-# Upload multiple artifacts to GitHub Release in parallel.
-'ubi:tcnksm/ghr' = 'latest'
-# Deliver Go binaries as fast and easily as possible.
-goreleaser = 'latest' # TODO: Unused.
+# GitHub's official command line tool.
+gh = 'latest'
 
 
 [vars]
