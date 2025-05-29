@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.1.9]: https://github.com///compare/v0.1.8..v0.1.9
 [abe9760]: https://github.com///commit/abe9760ca021de1841805213fe9e37ed80b32574
 [3583173]: https://github.com///commit/3583173bdb8979150738a594ee1b946f5ecf2afc
+[3a8976e]: https://github.com///commit/3a8976e2f636700f5876511aaf9d67af2ff0da3a
 
 ## [0.1.8] - 2025-05-29
 
