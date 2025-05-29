@@ -41,7 +41,7 @@ jobs:
       - name: Get bumped version and unreleased changelog
         id: bump
         env:
-          GITHUB_REPO: ${{ env.GITHUB_REPOSITORY }}
+          GITHUB_REPO: ${{ github.repository }}
         run: |
           version=$(git-cliff --bumped-version)
           echo "version=$version" >> $GITHUB_OUTPUT
@@ -52,7 +52,7 @@ jobs:
 
       - name: Create or update release-plz branch
         env:
-          GITHUB_REPO: ${{ env.GITHUB_REPOSITORY }}
+          GITHUB_REPO: ${{ github.repository }}
         run: |
           git checkout -B release-plz
 
