@@ -30,8 +30,8 @@ body = """
     https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}/commit/{{ id }}
 {%- endmacro -%}
 {%- macro commit(commit) -%}
-{% if commit.scope %}*({{ commit.scope }})* {% endif %}\
-    {% if commit.breaking %}**BREAKING!** {% endif %}\
+{% if commit.scope %}**({{ commit.scope }})** {% endif %}\
+    {% if commit.breaking %}**⚠️ BREAKING!** {% endif %}\
     {{ commit.message | split(pat="\n") | first | upper_first | trim }} by \
     {% if commit.remote.username %}@{{ commit.remote.username }}
     {%- else %}{{ commit.author.name }}
@@ -49,18 +49,24 @@ body = """
     ## [Unreleased]
 {% endif -%}
 
-{%- for group, commits in commits | group_by(attribute="group") %}
-    ### {{ group | striptags | trim }}
+{%- if version and version is matching("v0.1.0") %}
+    - Initial release
+{% else -%}
+    {%- for group, commits in commits | group_by(attribute="group") %}
+        {%- if group is not matching("Chore|Testing") %}
+            ### {{ group | striptags | trim }}
 
-    {% for commit in commits | filter(attribute="scope") | sort(attribute="scope") -%}
-        - {{ self::commit(commit=commit) }}
-    {% endfor -%}
-    {% for commit in commits -%}
-        {%- if not commit.scope -%}
-            - {{ self::commit(commit=commit) }}
-        {% endif -%}
-    {% endfor -%}
-{%- endfor -%}
+            {% for commit in commits | filter(attribute="scope") | sort(attribute="scope") -%}
+                - {{ self::commit(commit=commit) }}
+            {% endfor -%}
+            {% for commit in commits -%}
+                {%- if not commit.scope -%}
+                    - {{ self::commit(commit=commit) }}
+                {% endif -%}
+            {% endfor -%}
+        {%- endif -%}
+    {%- endfor -%}
+{%- endif -%}
 
 {%- if github.contributors | filter(attribute="is_first_time", value=true) | length != 0 %}
     ### New Contributors
@@ -138,7 +144,11 @@ commit_preprocessors = [
 ]
 # regex for parsing and grouping commits
 commit_parsers = [
-  { message = '^fix\((test|ci|build)\)', skip = true },
+  { message = '^chore: release', skip = true },
+  { message = "^Merge ", skip = true },
+  { message = '^(feat|fix)\((test|ci|build)\)', group = '<!-- X -->⚙️ Chore' },
+  { message = '^(fix|chore)\(deps\)', group = '<!-- 8 -->📦️ Dependencies' },
+  # { message = '^[^:]*!:', group = '<!-- 0 -->⚠️ Breaking Change!' },
   { message = '^fix\(security\)', group = '<!-- 0 -->🛡️ Security' },
   { message = '^fix.* [Vv]ulnerabilit', group = '<!-- 0 -->🛡️ Security' },
   { message = '^fix.* [Ss]ecur', group = '<!-- 0 -->🛡️ Security' },
@@ -146,20 +156,19 @@ commit_parsers = [
   { message = '^feat.*: [Rr]emove', group = '<!-- 1 -->➖ Removed' },
   { message = '^feat.*: [Dd]elete', group = '<!-- 1 -->➖ Removed' },
   { message = '^feat.*: [Dd]rop', group = '<!-- 1 -->➖ Removed' },
-  { message = '^feat.*: [Dd]eprecat', group = '<!-- 2 -->❌ Deprecated' },
+  { message = '^(Revert|Reapply) "(feat|fix)', group = "<!-- 1 -->◀️ Revert" },
+  { message = '^feat.* [Dd]eprecat', group = '<!-- 2 -->❌ Deprecated' },
   { message = '^feat.*: [Aa]dd', group = '<!-- 3 -->🚀 Added' },
   { message = '^feat.*: [Ii]mplement', group = '<!-- 3 -->🚀 Added' },
   { message = '^feat.*: [Ss]upport', group = '<!-- 3 -->🚀 Added' },
   { message = '^feat', group = '<!-- 4 -->🔔 Changed' },
   { message = '^fix', group = '<!-- 5 -->🐛 Fixed' },
   { message = '^perf', group = '<!-- 6 -->⚡ Performance' },
-  { message = '^chore(deps)', group = '<!-- 7 -->🌐 Dependencies' },
-  { message = '^doc', group = '<!-- 8 -->📚 Documentation' },
-  { message = '^chore', skip = true },
-  { message = '^refactor', skip = true },
-  { message = '^test', skip = true },
-  { message = '^ci', skip = true },
-  { message = '^build', skip = true },
-  { message = '^(Revert|Reapply) "(chore|refactor|test|ci|build):', skip = true },
+  { message = '^docs', group = '<!-- 7 -->📚 Documentation' },
+  { message = '^build', group = '<!-- X -->⚙️ Chore' },
+  { message = '^chore', group = '<!-- X -->⚙️ Chore' },
+  { message = '^ci', group = '<!-- X -->⚙️ Chore' },
+  { message = '^refactor', group = '<!-- X -->⚙️ Chore' },
+  { message = '^test', group = "<!-- Z -->🧪 Testing" },
   { message = '.', group = '<!-- 4 -->🔔 Changed' },
 ]
