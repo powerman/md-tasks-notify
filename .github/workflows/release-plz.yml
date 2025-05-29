@@ -113,10 +113,11 @@ jobs:
 
       - name: Sign binary with cosign
         run: |
+          # Fix after go-release-action: asset dir is owned by root and has extra binary.
           sudo chown -R $(id -u) ${{ steps.build.outputs.release_asset_dir }}
+          rm -f ${{ steps.build.outputs.release_asset_dir }}/$(basename $PWD){,.exe}
+
           cd ${{ steps.build.outputs.release_asset_dir }}
-          ls -al
-          rm -f md-tasks-notify
           for file in *; do
             if [[ ! "$file" =~ \.(sha256|md5)$ ]]; then
               echo "Signing $file..."
@@ -143,3 +144,4 @@ jobs:
           tag_name: ${{ needs.create-draft-release.outputs.version }}
           body: ${{ needs.create-draft-release.outputs.changelog }}
           draft: false
+          make_latest: true

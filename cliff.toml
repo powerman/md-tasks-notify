@@ -95,11 +95,13 @@ body = """
     {%- endif %}
 {% endif -%}
 {% for commit in commits -%}
+  {%- if commit.group is not matching("Chore|Testing") -%}
     {% if commit.remote.pr_number -%}
         [#{{ commit.remote.pr_number }}]: {{ self::remote_pr_url(id=commit.remote.pr_number) }}
     {%- else -%}
         [{{ commit.id | truncate(length=7, end="") }}]: {{ self::remote_commit_url(id=commit.id) }}
     {%- endif %}
+  {% endif -%}
 {% endfor -%}
 """
 # template for the changelog footer
