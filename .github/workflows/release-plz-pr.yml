@@ -1,3 +1,7 @@
+# INFO: To use this action you should check in repo Settings / Actions / General:
+#   Workflow permissions
+#   [x] Allow GitHub Actions to create and approve pull requests
+
 name: release-plz-pr
 
 permissions:
@@ -14,8 +18,8 @@ concurrency:
 
 jobs:
   release-plz-pr:
-    # Do not run in a repo forks.
-    if: ${{ github.repository_owner == 'powerman' }}
+    # Do not run in a repo forks and release commits.
+    if: "${{ github.repository_owner == 'powerman' && ! contains(github.event.head_commit.message, 'chore: release') }}"
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
