@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.10] - 2025-05-29
+
+[0.1.10]: https://github.com///compare/v0.1.9..v0.1.10
+[ff23b56]: https://github.com///commit/ff23b565f5ed900b8af5e0ffd1ce7a7fa99c32c7
+
 ## [0.1.9] - 2025-05-29
 
 ### 📚 Documentation
