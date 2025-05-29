@@ -6,6 +6,8 @@
 breaking_always_bump_major = false
 # use "v" prefix
 initial_tag = "v0.1.0"
+custom_major_increment_regex = "major"
+custom_minor_increment_regex = "minor|more"
 
 [changelog]
 # template for the changelog header
