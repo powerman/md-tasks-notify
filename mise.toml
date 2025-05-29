@@ -13,8 +13,6 @@ go = 'latest'
 #--- Test & Lint
 # 'go test' runner with output optimized for humans.
 'ubi:gotestyourself/gotestsum' = 'latest'
-# A static analysis tool for shell scripts.
-shellcheck = 'latest'
 # Fast linters runner for Go.
 golangci-lint = 'latest'
 # Run your GitHub Actions locally
@@ -35,10 +33,6 @@ cover = '.buildcache/cover.out'
 alias = 'default'
 description = 'Run all linters and tests'
 depends = ['lint:*', 'test:go']
-
-[tasks.'lint:sh']
-description = 'Lint shell scripts'
-run = 'shellcheck scripts/*'
 
 [tasks.'lint:go']
 description = 'Lint Go files'
