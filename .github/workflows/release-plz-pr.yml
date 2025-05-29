@@ -18,6 +18,8 @@ jobs:
     if: ${{ github.repository_owner == 'powerman' }}
     timeout-minutes: 10
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Increate GitHub API rate limits.
     steps:
       - uses: actions/checkout@v4
         with:

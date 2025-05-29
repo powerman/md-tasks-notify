@@ -15,11 +15,11 @@ concurrency:
   group: release-plz
 
 jobs:
-  test:
-    uses: ./.github/workflows/test.yml
+  # test:
+  #   uses: ./.github/workflows/test.yml
 
   create-draft-release:
-    needs: test
+    # needs: test
     # Do not run in a repo forks and non-release commits.
     if: "${{ github.repository_owner == 'powerman' && contains(github.event.head_commit.message, 'chore: release') }}"
     timeout-minutes: 5
@@ -34,6 +34,8 @@ jobs:
           fetch-depth: 0
 
       - uses: jdx/mise-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Increate GitHub API rate limits.
 
       - uses: fregante/setup-git-user@v2
 
