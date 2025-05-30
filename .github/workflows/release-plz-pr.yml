@@ -43,7 +43,8 @@ jobs:
         env:
           GITHUB_REPO: ${{ github.repository }}
         run: |
-          version=$(git-cliff --bumped-version)
+          version=$(git log -1 --pretty=format:"%s" |
+            grep -oP '^bump!?: \Kv[0-9]+\.[0-9]+\.[0-9]+\S+' || git-cliff --bumped-version)
           echo "version=$version" >> $GITHUB_OUTPUT
 
           echo "changelog<<EOF" >> $GITHUB_OUTPUT

@@ -29,6 +29,19 @@ gh = 'latest'
 cover = '.buildcache/cover.out'
 
 
+[tasks.'release:version']
+description = 'Release now using specific version'
+usage = 'arg "<version>" help="Version to set (e.g., 1.2.3 or v1.2.3)"'
+run = '''
+test -n "$(git status --porcelain)" && { echo "Working directory is dirty"; exit 1; }
+git commit --allow-empty -m "bump: v${usage_version#v}" && git push
+'''
+
+[tasks.'changelog:skip-commit']
+description = 'Add commit hash to .cliffignore to exclude from CHANGELOG'
+usage = 'arg "<commit>" help="Git revision (e.g. HEAD or a1b2c4d)"'
+run = 'git rev-parse --verify "${usage_commit}" >> .cliffignore'
+
 [tasks.test]
 alias = 'default'
 description = 'Run all linters and tests'
