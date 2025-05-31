@@ -14,12 +14,18 @@ on:
       - master
 
 concurrency:
-  group: release-plz-pr
+  group: release-plz
 
 jobs:
   release-plz-pr:
-    # Do not run in a repo forks and release commits.
-    if: "${{ github.repository_owner == 'powerman' && ! contains(github.event.head_commit.message, 'chore: release') }}"
+    # Do not run in repo forks and release-plz commits.
+    if: >-
+      ${{
+        github.repository_owner == 'powerman' &&
+        ! contains(github.event.head_commit.message, 'chore: release') &&
+        ! (contains(github.event.head_commit.message, 'Merge pull request') &&
+           contains(github.event.head_commit.message, 'from release-plz'))
+      }}
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
@@ -38,44 +44,51 @@ jobs:
 
       - uses: fregante/setup-git-user@v2
 
-      - name: Get bumped version and unreleased changelog
-        id: bump
+      - name: Determine version and generate changelog
         env:
-          GITHUB_REPO: ${{ github.repository }}
+          GITHUB_REPO: ${{ github.repository }} # Used by git-cliff.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Used by gh.
         run: |
-          version=$(git log -1 --pretty=format:"%s" |
-            grep -oP '^bump!?: \Kv[0-9]+\.[0-9]+\.[0-9]+\S+' || git-cliff --bumped-version)
-          echo "version=$version" >> $GITHUB_OUTPUT
+          VERSION=$(git-cliff --bumped-version)
 
-          echo "changelog<<EOF" >> $GITHUB_OUTPUT
-          git-cliff --tag "$version" --unreleased --strip all | tail -n +3 >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          # Check if existing PR has a manually set version that should be preserved.
+          pr_title=$(gh pr list --state open --head release-plz --json title --jq '.[0].title')
+          if [ -n "$pr_title" ]; then
+            pr_version=$(echo "$pr_title" | grep -oP '^chore:\s+release\s+\Kv?[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?=\s*$)')
+            test -n "$pr_version" || { echo "Failed to extract version from PR title: '$pr_title'"; exit 1; }
+            alias semver-ge="python3 -c 'import sys, packaging.version as v; exit(v.Version(sys.argv[1]) < v.Version(sys.argv[2]))'"
+            if semver-ge "${pr_version}" "${VERSION}"; then
+              VERSION="v${pr_version#v}"
+            fi
+          fi
 
-      - name: Create or update release-plz branch
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "COMMIT_MSG='chore: release $VERSION'" >> $GITHUB_ENV
+          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+          git-cliff --tag "$VERSION" --unreleased --strip all | tail -n +3 >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Create or update release-plz branch with CHANGELOG.md
         env:
-          GITHUB_REPO: ${{ github.repository }}
+          GITHUB_REPO: ${{ github.repository }} # Used by git-cliff.
         run: |
           git checkout -B release-plz
 
-          git-cliff --tag "${{ steps.bump.outputs.version }}" -o CHANGELOG.md
+          git-cliff --tag "$VERSION" -o CHANGELOG.md
           git add CHANGELOG.md
 
-          git commit --allow-empty -m "chore: release ${{ steps.bump.outputs.version }}"
+          git commit --allow-empty -m "$COMMIT_MSG"
           git push origin release-plz --force
 
-      - name: Create or update PR
+      - name: Create or update release-plz pull request
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Used by gh.
         run: |
-          args=(
-              --title "chore: release ${{ steps.bump.outputs.version }}"
-              --body "${{ steps.bump.outputs.changelog }}"
-          )
-          existing_pr=$(gh pr list --state open --head release-plz --json number --jq '.[0].number')
-          if [ -z "$existing_pr" ]; then
-            echo "Creating new PR"
-            gh pr create --head release-plz --base master "${args[@]}"
+          pr_number=$(gh pr list --state open --head release-plz --json number --jq '.[0].number')
+          if [ -z "$pr_number" ]; then
+            gh pr create --head release-plz --base master --title "$COMMIT_MSG" --body "$CHANGELOG"
+            echo "Created new release-plz PR"
           else
-            echo "Updating existing PR #$existing_pr"
-            gh pr edit "$existing_pr" "${args[@]}"
+            gh pr edit "$pr_number" --title "$COMMIT_MSG" --body "$CHANGELOG"
+            echo "Updated existing release-plz PR #$pr_number"
           fi

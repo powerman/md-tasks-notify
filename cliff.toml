@@ -1,7 +1,7 @@
 # https://git-cliff.org/docs/configuration
 #
 # For manual CHANGELOG management tasks:
-# - Force release with manual version: `git commit --allow-empty -m 'bump: v1.2.3'`.
+# - Force release with manual version: edit release-plz PR title.
 # - Remove specific commit: add hash to `.cliffignore` file.
 # - Fix specific commit: use `postprocessors=` with commit hash.
 # - Fix typo in all commits: use `commit_preprocessors=`.
@@ -76,7 +76,7 @@ body = """
 -#}
 
 {%- for group, commits in commits | group_by(attribute="group") %}
-    {%- if group is not matching("Chore|Testing|Bump") %}
+    {%- if group is not matching("Chore|Testing") %}
         ### {{ group | striptags | trim }}
 
         {% for commit in commits | filter(attribute="scope") | sort(attribute="scope") -%}
@@ -185,7 +185,6 @@ commit_preprocessors = [
 # commit messages are affected wherever the regex is matched.
 # https://git-cliff.org/docs/configuration/git#commit_parsers
 commit_parsers = [
-  { message = '^bump:', group = '<!-- ~ -->⚙️ Bump' },
   { message = '^chore: release', skip = true },
   { message = '^Merge ', skip = true },
   { message = '^(feat|fix)\((test|ci|build)\)', group = '<!-- X -->⚙️ Chore' },

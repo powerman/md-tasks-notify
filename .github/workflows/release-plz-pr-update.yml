@@ -1,0 +1,74 @@
+name: release-plz-pr-update
+
+permissions:
+  contents: write # To update a release-plz branch.
+
+on:
+  pull_request:
+    types: [edited]
+    branches:
+      - master
+
+concurrency:
+  group: release-plz
+
+jobs:
+  update-release-branch:
+    if: >-
+      ${{
+        github.repository_owner == 'powerman' &&
+        github.head_ref == 'release-plz' &&
+        github.event.changes.title
+      }}
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Need full git history for git-cliff to determine next version and build changelog.
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+
+      - name: Enable `git push` when `act` is run without `--no-skip-checkout`
+        if: ${{ env.ACT }}
+        run: git remote set-url origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git"
+
+      - uses: jdx/mise-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Increase GitHub API rate limits.
+
+      - uses: fregante/setup-git-user@v2
+
+      - name: Update release-plz branch with new version
+        env:
+          GITHUB_REPO: ${{ github.repository }} # Used by git-cliff.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Used by gh.
+        run: |
+          # A manually edited title may differ a bit from auto-generated commit message
+          # (extra spaces, version without "v" prefix).
+          pr_title="${{ github.event.pull_request.title }}"
+          VERSION=$(echo "$pr_title" | grep -oP '^chore:\s+release\s+\Kv?[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?=\s*$)')
+          test -n "$VERSION" || { echo "Failed to extract version from PR title: '$pr_title'"; exit 1; }
+          VERSION="v${VERSION#v}"
+          COMMIT_MSG="chore: release $VERSION"
+          existing_commit_msg=$(git log -1 --pretty=format:"%s")
+
+          # Update release-plz branch and PR if version was manually changed.
+          pr_number="${{ github.event.number }}"
+          if [ "$existing_commit_msg" != "$COMMIT_MSG" ]; then
+            git-cliff --tag "$VERSION" -o CHANGELOG.md
+            git add CHANGELOG.md
+
+            git commit --amend --allow-empty -m "$COMMIT_MSG"
+            git push origin release-plz --force
+
+            CHANGELOG=$(git-cliff --tag "$VERSION" --unreleased --strip all | tail -n +3)
+            gh pr edit "$pr_number" --title "$COMMIT_MSG" --body "$CHANGELOG"
+            echo "Updated release-plz branch and PR #$pr_number with new version"
+          elif [ "$pr_title" != "$COMMIT_MSG" ]; then
+            # Normalize PR title to simplify other workflows.
+            gh pr edit "$pr_number" --title "$COMMIT_MSG"
+            echo "Normalized title for release-plz PR #$pr_number"
+          else
+            echo "No changes needed for release-plz PR #$pr_number"
+          fi
