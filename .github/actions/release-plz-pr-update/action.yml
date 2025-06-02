@@ -1,0 +1,104 @@
+name: 'Release PLZ PR Update'
+description: 'Update release-plz branch when PR title is manually edited'
+inputs:
+  version_cmd:
+    description: 'Optional shell command to update additional files with version (receives version in $RELEASE_PLZ_VERSION)'
+    required: false
+  target_branch:
+    description: 'Target branch for release PRs'
+    required: false
+  pr_branch:
+    description: 'Branch name for release PRs'
+    required: false
+  commit_prefix:
+    description: 'Commit message prefix for releases'
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Show release-plz configuration
+      shell: bash
+      env:
+        RELEASE_PLZ_TARGET_BRANCH: ${{ inputs.target_branch }}
+        RELEASE_PLZ_PR_BRANCH: ${{ inputs.pr_branch }}
+        RELEASE_PLZ_COMMIT_PREFIX: ${{ inputs.commit_prefix }}
+      run: |
+        ${{ github.action_path }}/../scripts/setup-config.sh
+
+    - name: Ensure correct branch and full git history
+      shell: bash
+      run: |
+        # Ensure we're on the correct branch
+        target_ref="$PR_BRANCH"
+        current_branch=$(git branch --show-current 2>/dev/null || echo "")
+        current_ref=$(git rev-parse HEAD)
+
+        # Check if we need to switch branches
+        if [ -n "$current_branch" ] && [ "$current_branch" != "$target_ref" ]; then
+          echo "Switching to branch: $target_ref"
+          git checkout "$target_ref" || git fetch origin "$target_ref" && git checkout "$target_ref"
+        elif [ -z "$current_branch" ]; then
+          # We're in detached HEAD, try to checkout the target branch
+          echo "In detached HEAD, switching to branch: $target_ref"
+          git checkout "$target_ref" || git fetch origin "$target_ref" && git checkout "$target_ref"
+        fi
+
+        # Ensure full git history
+        echo "Ensuring full git history..."
+        git fetch --unshallow || true
+
+    - uses: jdx/mise-action@v2
+      env:
+        GITHUB_TOKEN: ${{ github.token }} # Increase GitHub API rate limits.
+
+    - uses: fregante/setup-git-user@v2
+
+    - name: Update release-plz branch with new version
+      shell: bash
+      env:
+        GITHUB_REPO: ${{ github.repository }} # Used by git-cliff.
+        GITHUB_TOKEN: ${{ github.token }} # Used by gh.
+      run: |
+        # Save workdir state
+        ${{ github.action_path }}/../scripts/save-workdir.sh "release-plz-pr-update-stash"
+
+        # Get PR info from github.event
+        PR_TITLE="${{ github.event.pull_request.title }}"
+        PR_NUMBER="${{ github.event.number }}"
+        # A manually edited title may differ a bit from auto-generated commit message
+        # (extra spaces, version without "v" prefix).
+        VERSION=$(echo "$PR_TITLE" | grep -oP "^\Q${COMMIT_PREFIX}\E\s+\Kv?[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?=\s*$)")
+        test -n "$VERSION" || { echo "Failed to extract version from PR title: '$PR_TITLE'"; exit 1; }
+        VERSION="v${VERSION#v}"
+        COMMIT_MSG="$COMMIT_PREFIX $VERSION"
+        existing_commit_msg=$(git log -1 --pretty=format:"%s")
+
+        # Update release-plz branch and PR if version was manually changed.
+        if [ "$existing_commit_msg" != "$COMMIT_MSG" ]; then
+          # Run custom version command if provided
+          if [ -n "${{ inputs.version_cmd }}" ]; then
+            echo "Running custom version command..."
+            export RELEASE_PLZ_VERSION="$VERSION"
+            bash -c -e -o pipefail "${{ inputs.version_cmd }}"
+          fi
+
+          git-cliff --tag "$VERSION" -o CHANGELOG.md
+          git add CHANGELOG.md
+
+          git commit --amend --allow-empty -m "$COMMIT_MSG"
+          git push origin "$PR_BRANCH" --force
+
+          CHANGELOG=$(git-cliff --tag "$VERSION" --unreleased --strip all | tail -n +3)
+          gh pr edit "$PR_NUMBER" --title "$COMMIT_MSG" --body "$CHANGELOG"
+          echo "Updated release-plz branch and PR #$PR_NUMBER with new version"
+        elif [ "$PR_TITLE" != "$COMMIT_MSG" ]; then
+          # Normalize PR title to simplify other workflows.
+          gh pr edit "$PR_NUMBER" --title "$COMMIT_MSG"
+          echo "Normalized title for release-plz PR #$PR_NUMBER"
+        else
+          echo "No changes needed for release-plz PR #$PR_NUMBER"
+        fi
+
+        # Restore workdir state
+        ${{ github.action_path }}/../scripts/restore-workdir.sh
