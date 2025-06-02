@@ -62,7 +62,6 @@ runs:
         GITHUB_REPO: ${{ github.repository }} # Used by git-cliff.
         GITHUB_TOKEN: ${{ github.token }} # Used by gh.
       run: |
-        set -x
         # Save workdir state
         ${{ github.action_path }}/../scripts/save-workdir.sh "release-plz-prepare-stash"
 
