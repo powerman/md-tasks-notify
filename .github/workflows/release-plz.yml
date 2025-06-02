@@ -102,6 +102,8 @@ jobs:
     timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - uses: ./.github/actions/release-plz-finalize
         with:
           version: ${{ needs.release.outputs.version }}
