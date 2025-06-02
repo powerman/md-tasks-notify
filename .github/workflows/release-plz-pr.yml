@@ -1,7 +1,3 @@
-# INFO: To use this action you should check in repo Settings / Actions / General:
-#   Workflow permissions
-#   [x] Allow GitHub Actions to create and approve pull requests
-
 name: release-plz-pr
 
 permissions:
@@ -11,7 +7,7 @@ permissions:
 on:
   push:
     branches:
-      - master
+      - 'master' # Must be the same as ${{ vars.RELEASE_PLZ_TARGET_BRANCH || 'master' }.
 
 concurrency:
   group: release-plz
@@ -22,73 +18,21 @@ jobs:
     if: >-
       ${{
         github.repository_owner == 'powerman' &&
-        ! contains(github.event.head_commit.message, 'chore: release') &&
+        ! contains(github.event.head_commit.message, (vars.RELEASE_PLZ_COMMIT_PREFIX || 'chore: release')) &&
         ! (contains(github.event.head_commit.message, 'Merge pull request') &&
-           contains(github.event.head_commit.message, 'from release-plz'))
+           contains(github.event.head_commit.message, format('from {0}', (vars.RELEASE_PLZ_PR_BRANCH || 'release-plz'))))
       }}
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          # Need full git history for git-cliff to determine next version and build changelog.
-          fetch-depth: 0
 
       - name: Enable `git push` when `act` is run without `--no-skip-checkout`
         if: ${{ env.ACT }}
         run: git remote set-url origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git"
 
-      - uses: jdx/mise-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Increase GitHub API rate limits.
-
-      - uses: fregante/setup-git-user@v2
-
-      - name: Determine version and generate changelog
-        env:
-          GITHUB_REPO: ${{ github.repository }} # Used by git-cliff.
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Used by gh.
-        run: |
-          VERSION=$(git-cliff --bumped-version)
-
-          # Check if existing PR has a manually set version that should be preserved.
-          pr_title=$(gh pr list --state open --head release-plz --json title --jq '.[0].title')
-          if [ -n "$pr_title" ]; then
-            pr_version=$(echo "$pr_title" | grep -oP '^chore:\s+release\s+\Kv?[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?=\s*$)')
-            test -n "$pr_version" || { echo "Failed to extract version from PR title: '$pr_title'"; exit 1; }
-            alias semver-ge="python3 -c 'import sys, packaging.version as v; exit(v.Version(sys.argv[1]) < v.Version(sys.argv[2]))'"
-            if semver-ge "${pr_version}" "${VERSION}"; then
-              VERSION="v${pr_version#v}"
-            fi
-          fi
-
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "COMMIT_MSG='chore: release $VERSION'" >> $GITHUB_ENV
-          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
-          git-cliff --tag "$VERSION" --unreleased --strip all | tail -n +3 >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      - name: Create or update release-plz branch with CHANGELOG.md
-        env:
-          GITHUB_REPO: ${{ github.repository }} # Used by git-cliff.
-        run: |
-          git checkout -B release-plz
-
-          git-cliff --tag "$VERSION" -o CHANGELOG.md
-          git add CHANGELOG.md
-
-          git commit --allow-empty -m "$COMMIT_MSG"
-          git push origin release-plz --force
-
-      - name: Create or update release-plz pull request
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Used by gh.
-        run: |
-          pr_number=$(gh pr list --state open --head release-plz --json number --jq '.[0].number')
-          if [ -z "$pr_number" ]; then
-            gh pr create --head release-plz --base master --title "$COMMIT_MSG" --body "$CHANGELOG"
-            echo "Created new release-plz PR"
-          else
-            gh pr edit "$pr_number" --title "$COMMIT_MSG" --body "$CHANGELOG"
-            echo "Updated existing release-plz PR #$pr_number"
-          fi
+      - uses: ./.github/actions/release-plz-pr
+        with:
+          target_branch: ${{ vars.RELEASE_PLZ_TARGET_BRANCH }}
+          pr_branch: ${{ vars.RELEASE_PLZ_PR_BRANCH }}
+          commit_prefix: ${{ vars.RELEASE_PLZ_COMMIT_PREFIX }}

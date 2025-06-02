@@ -1,0 +1,137 @@
+name: 'Release PLZ Prepare'
+description: 'Extract version, check for race conditions, and create draft release'
+inputs:
+  version_cmd:
+    description: 'Optional shell command to update additional files with version (receives version in $RELEASE_PLZ_VERSION)'
+    required: false
+  target_branch:
+    description: 'Target branch for release PRs'
+    required: false
+  pr_branch:
+    description: 'Branch name for release PRs'
+    required: false
+  commit_prefix:
+    description: 'Commit message prefix for releases'
+    required: false
+outputs:
+  version:
+    description: 'Extracted version'
+    value: ${{ steps.extract.outputs.version }}
+  changelog:
+    description: 'Generated changelog'
+    value: ${{ steps.extract.outputs.changelog }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Show release-plz configuration
+      shell: bash
+      env:
+        RELEASE_PLZ_TARGET_BRANCH: ${{ inputs.target_branch }}
+        RELEASE_PLZ_PR_BRANCH: ${{ inputs.pr_branch }}
+        RELEASE_PLZ_COMMIT_PREFIX: ${{ inputs.commit_prefix }}
+      run: |
+        ${{ github.action_path }}/../scripts/setup-config.sh
+
+    - name: Ensure full git history
+      shell: bash
+      run: |
+        # Need full git history for git-cliff to determine next version and build changelog.
+        echo "Ensuring full git history..."
+        git fetch --unshallow || true
+
+    - uses: jdx/mise-action@v2
+      env:
+        GITHUB_TOKEN: ${{ github.token }} # Increase GitHub API rate limits.
+
+    - uses: fregante/setup-git-user@v2
+
+    # Race condition handling:
+    # 1. Extract version from PR title (merge commit) or current commit (squash merge).
+    # 2. Regenerate CHANGELOG.md with this version.
+    # 3. If CHANGELOG.md changed, it means one of these race conditions occurred:
+    #    - A user changed version in release-PR title and merged release-PR before
+    #      release-plz-pr-update workflow updated release-plz branch.
+    #    - A significant commit was pushed to master branch but user merged release-PR before
+    #      release-plz-pr workflow updated release-plz branch.
+    # 4. In case of race condition, create new release-plz PR instead of proceeding with release.
+    - name: Extract version and check race condition
+      id: extract
+      shell: bash
+      env:
+        GITHUB_REPO: ${{ github.repository }} # Used by git-cliff.
+        GITHUB_TOKEN: ${{ github.token }} # Used by gh.
+      run: |
+        # Save workdir state
+        ${{ github.action_path }}/../scripts/save-workdir.sh "release-plz-prepare-stash"
+
+        # Extract version from PR title for merge commits, otherwise from current commit
+        release_msg=$(git log -1 --pretty=format:"%s")
+        if echo "$release_msg" | grep -q '^Merge pull request #[0-9]\+'; then
+          pr_number=$(echo "$release_msg" | grep -oP '^Merge pull request #\K[0-9]+')
+          release_msg=$(gh pr view "$pr_number" --json title --jq '.title')
+        fi
+        VERSION=$(echo "$release_msg" | grep -oP "^\Q${COMMIT_PREFIX}\E\s+\Kv?[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?=\s*$)")
+        test -n "$VERSION" || { echo "Failed to extract version from release message: '$release_msg'"; exit 1; }
+
+        VERSION="v${VERSION#v}"
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        COMMIT_MSG="$COMMIT_PREFIX $VERSION"
+        CHANGELOG=$(git-cliff --tag "$VERSION" --unreleased --strip all | tail -n +3)
+        echo "changelog<<EOF" >> $GITHUB_OUTPUT
+        echo "$CHANGELOG" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+        # Check for race condition
+        git-cliff --tag "$VERSION" -o CHANGELOG.md
+        if git diff --quiet -- CHANGELOG.md; then
+          echo "No race condition detected - proceeding with release"
+          # Restore workdir state
+          ${{ github.action_path }}/../scripts/restore-workdir.sh
+          exit 0
+        fi
+
+        echo "Race condition detected - CHANGELOG.md differs from expected state"
+        git diff -- CHANGELOG.md
+
+        # Create release-plz branch and PR due to race condition
+        pr_number=$(gh pr list --state open --head "$PR_BRANCH" --json number --jq '.[0].number')
+        if [ -z "$pr_number" ]; then
+          git checkout -B "$PR_BRANCH"
+
+          # Run custom version command if provided
+          if [ -n "${{ inputs.version_cmd }}" ]; then
+            echo "Running custom version command..."
+            export RELEASE_PLZ_VERSION="$VERSION"
+            bash -c -e -o pipefail "${{ inputs.version_cmd }}"
+          fi
+
+          git add CHANGELOG.md
+          git commit --allow-empty -m "$COMMIT_MSG"
+          git push origin "$PR_BRANCH" --force
+
+          gh pr create --head "$PR_BRANCH" --base "$TARGET_BRANCH" --title "$COMMIT_MSG" --body "$CHANGELOG"
+          echo "Created new release-plz PR due to race condition"
+        else
+          echo "Found existing release-plz PR #$pr_number"
+        fi
+
+        # Restore workdir state
+        ${{ github.action_path }}/../scripts/restore-workdir.sh
+        exit 1
+
+    - name: Create and push release tag
+      shell: bash
+      env:
+        VERSION: ${{ steps.extract.outputs.version }}
+        CHANGELOG: ${{ steps.extract.outputs.changelog }}
+      run: |
+        git tag "$VERSION" -m "$CHANGELOG"
+        git push origin "$VERSION"
+
+    - name: Create draft release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ steps.extract.outputs.version }}
+        body: ${{ steps.extract.outputs.changelog }}
+        draft: true
