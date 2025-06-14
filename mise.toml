@@ -11,18 +11,12 @@ go = 'latest'
 'go:go.uber.org/mock/mockgen' = 'latest'
 
 #--- Test & Lint
+# Static checker for GitHub Actions workflow files.
+actionlint = 'latest'
 # 'go test' runner with output optimized for humans.
 'ubi:gotestyourself/gotestsum' = 'latest'
 # Fast linters runner for Go.
 golangci-lint = 'latest'
-# Run your GitHub Actions locally
-act = 'latest'
-
-#--- Release
-# A highly customizable Changelog Generator that follows Conventional Commit specifications.
-git-cliff = 'latest'
-# GitHub's official command line tool.
-gh = 'latest'
 
 
 [vars]
@@ -38,6 +32,10 @@ run = 'git rev-parse --verify "${usage_commit}" >> .cliffignore'
 alias = 'default'
 description = 'Run all linters and tests'
 depends = ['lint:*', 'test:go']
+
+[tasks.'lint:workflows']
+description = 'Lint GitHub Action workflows'
+run = 'actionlint'
 
 [tasks.'lint:go']
 description = 'Lint Go files'

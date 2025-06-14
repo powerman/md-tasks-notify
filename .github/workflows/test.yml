@@ -24,14 +24,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Enable `git push` when `act` is run without `--no-skip-checkout`
-        if: ${{ env.ACT }}
-        run: git remote set-url origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git"
-
       - uses: jdx/mise-action@v2
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Increase GitHub API rate limits.
-      - run: mise ls
+          GITHUB_TOKEN: ${{ github.token }} # Increase GitHub API rate limits.
 
       - uses: ./.github/actions/go-cache
 
@@ -46,4 +41,3 @@ jobs:
       - uses: ./.github/actions/coverage-badge
         with:
           total: ${{ steps.coverage.outputs.total }}
-          token: ${{ secrets.GITHUB_TOKEN }}

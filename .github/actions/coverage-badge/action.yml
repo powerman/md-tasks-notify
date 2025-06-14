@@ -9,9 +9,6 @@ inputs:
     description: 'Branch to store the badge'
     required: false
     default: 'gh-badges'
-  token:
-    description: 'GitHub token for git operations'
-    required: true
 
 runs:
   using: composite
@@ -26,7 +23,7 @@ runs:
     - name: Switch to target branch (create it if not exists)
       shell: bash
       env:
-        GITHUB_TOKEN: ${{ inputs.token }}
+        GITHUB_TOKEN: ${{ github.token }}
       run: |
         if git fetch --depth=1 origin "${{ inputs.branch }}"; then
           git checkout "${{ inputs.branch }}"

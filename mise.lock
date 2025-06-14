@@ -1,33 +1,23 @@
-[tools.act]
-version = "0.2.77"
-backend = "aqua:nektos/act"
-
-[tools.act.checksums]
-"act_Linux_x86_64.tar.gz" = "sha256:be48669e49cfed33d36f4c34c4fce2722c8261a47b174d66cee751a219e75d8e"
+[tools.actionlint]
+version = "1.7.7"
+backend = "aqua:rhysd/actionlint"
 
 [tools.gh]
-version = "2.73.0"
+version = "2.74.0"
 backend = "aqua:cli/cli"
 
 [tools.gh.checksums]
-"gh_2.73.0_linux_amd64.tar.gz" = "sha256:9ebc6b751ee182fdb291ceb2213cc17abb1624b30f6d7a3913097af41f48b1b4"
-
-[tools.git-cliff]
-version = "2.8.0"
-backend = "aqua:orhun/git-cliff"
-
-[tools.git-cliff.checksums]
-"git-cliff-2.8.0-x86_64-unknown-linux-musl.tar.gz" = "sha512:80c3cf621269169db9dd173c661bf64b477475fe14e10411f517061a624850a09bae3ddaa33469856b422a3b046925a8d70f1479f33cc93a90fa4edb202e5597"
+"gh_2.74.0_linux_amd64.tar.gz" = "sha256:e55c9d49dc49c0b0fef0a9acd3510482fd9e27ff52ae80f8a6e838cd25b4cd89"
 
 [tools.go]
-version = "1.24.3"
+version = "1.24.4"
 backend = "core:go"
 
 [tools.go.checksums]
-"go1.24.3.linux-amd64.tar.gz" = "sha256:3333f6ea53afa971e9078895eaa4ac7204a8c6b5c68c10e6bc9a33e8e391bdd8"
+"go1.24.4.linux-amd64.tar.gz" = "sha256:77e5da33bb72aeaef1ba4418b6fe511bc4d041873cbf82e5aa6318740df98717"
 
 [tools."go:go.uber.org/mock/mockgen"]
-version = "latest"
+version = "0.5.2"
 backend = "go:go.uber.org/mock/mockgen"
 
 [tools.golangci-lint]
