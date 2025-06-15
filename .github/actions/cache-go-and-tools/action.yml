@@ -1,0 +1,26 @@
+name: 'Cache Go and tools'
+description: 'Sets up caching for Go modules and build cache plus known tools caches'
+
+inputs:
+  key:
+    description: 'Extra part of caching key, e.g. ＄{{ matrix.go }}'
+    required: false
+outputs:
+  cache-hit:
+    description: 'Whether there was a cache hit'
+    value: ${{ steps.cache-go-and-tools.outputs.cache-hit }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/cache@v4
+      id: cache-go-and-tools
+      with:
+        path: |
+          ~/go/pkg/mod
+          ~/.cache/go-build
+          ~/.cache/golangci-lint
+        key: v1-go-and-tools-${{ runner.os }}-${{ inputs.key }}-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          v1-go-and-tools-${{ runner.os }}-${{ inputs.key }}-
+          v1-go-and-tools-${{ runner.os }}-

@@ -3,8 +3,11 @@ description: 'Generates and updates coverage badge in a separate branch'
 
 inputs:
   total:
-    description: 'Coverage percentage (integer)'
-    required: true
+    description: 'Coverage percentage (like 42 or 99.99%)'
+    required: false # Require one of total or total_cmd.
+  total_cmd:
+    description: 'Command which will return a total (like 42 or 99.99%)'
+    required: false # Require one of total or total_cmd.
   branch:
     description: 'Branch to store the badge'
     required: false
@@ -13,6 +16,25 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Validate input
+      id: valid
+      shell: bash
+      env:
+        TOTAL: ${{ inputs.total }}
+        TOTAL_CMD: ${{ inputs.total_cmd }}
+      run: |
+        total="$TOTAL"
+        if [ -z "$total" -a -n "$TOTAL_CMD" ]; then
+          total=$(bash -e -o pipefail -c "$TOTAL_CMD")
+        fi
+        result=$(echo "$total" | grep -oP '^\s*\K\d+(?=([.]\d+)?%?\s*$)' || true)
+        if [ -z "$result" ]; then
+          echo "::error:: Require integer total or total_cmd output, got '$total'"
+          exit 1
+        fi
+        echo "::notice:: Test coverage is ${result}%"
+        echo "total=$result" >> "$GITHUB_OUTPUT"
+
     - uses: fregante/setup-git-user@v2
 
     - name: Save current git ref
@@ -26,26 +48,30 @@ runs:
       shell: bash
       env:
         GITHUB_TOKEN: ${{ github.token }}
+        BRANCH: ${{ inputs.branch }}
       run: |
-        if git fetch --depth=1 origin "${{ inputs.branch }}"; then
-          git checkout "${{ inputs.branch }}"
+        if git fetch --depth=1 origin "$BRANCH"; then
+          git checkout "$BRANCH"
         else
-          git switch --orphan "${{ inputs.branch }}" || { git status; git diff; exit 1; }
-          git commit --allow-empty -m "Update for ${{ inputs.branch }}" && git push -u origin "${{ inputs.branch }}"
+          git switch --orphan "$BRANCH" || { git status; git diff; exit 1; }
+          git commit --allow-empty -m "Update for $BRANCH" && git push -u origin "$BRANCH"
         fi
         git stash push -u -m "coverage-badge-action-stash"
 
     - name: Generate Coverage Badge
       shell: bash
+      env:
+        TOTAL: ${{ steps.valid.outputs.total }}
       run: |
-        if [ "${{ inputs.total }}" -ge 90 ]; then color=brightgreen
-        elif [ "${{ inputs.total }}" -ge 80 ]; then color=green
-        elif [ "${{ inputs.total }}" -ge 70 ]; then color=yellowgreen
-        elif [ "${{ inputs.total }}" -ge 60 ]; then color=yellow
-        elif [ "${{ inputs.total }}" -ge 50 ]; then color=orange
+        if   [ "$TOTAL" -ge 90 ]; then color=brightgreen
+        elif [ "$TOTAL" -ge 80 ]; then color=green
+        elif [ "$TOTAL" -ge 70 ]; then color=yellowgreen
+        elif [ "$TOTAL" -ge 60 ]; then color=yellow
+        elif [ "$TOTAL" -ge 50 ]; then color=orange
         else color=red
         fi
-        curl -o coverage.svg "https://img.shields.io/badge/coverage-${{ inputs.total }}%25-${color}"
+
+        curl -o coverage.svg "https://img.shields.io/badge/coverage-${TOTAL}%25-${color}"
         git add . && git commit --amend --date=now --no-edit && git push -f
 
     - name: Return to original branch
