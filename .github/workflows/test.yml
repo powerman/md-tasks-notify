@@ -28,6 +28,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }} # Increase GitHub API rate limits.
 
+      - name: DEBUG
+        run: git status && git diff && ls -al
+
       - uses: ./.github/actions/go-cache
 
       - run: mise run test

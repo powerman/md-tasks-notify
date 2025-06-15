@@ -22,6 +22,10 @@ runs:
         [ "$ref" != "HEAD" ] || ref=$(git rev-parse HEAD)
         echo "ref=$ref" >> "$GITHUB_ENV"
 
+    - name: DEBUG
+      shell: bash
+      run: git status && git diff && ls -al
+
     - name: Switch to target branch (create it if not exists)
       shell: bash
       env:
