@@ -3,7 +3,7 @@ description: 'Sets up caching for Go modules and build cache plus known tools ca
 
 inputs:
   key:
-    description: 'Extra part of caching key, e.g. ${{ matrix.go }}'
+    description: 'Extra part of caching key, e.g. ＄{{ matrix.go }}'
     required: false
 outputs:
   cache-hit:
