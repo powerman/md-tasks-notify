@@ -21,14 +21,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [0.1.11]: https://github.com/powerman/md-tasks-notify/compare/v0.1.10..v0.1.11
 
-## [0.1.10] - 2025-06-02
-
-[0.1.10]: https://github.com/powerman/md-tasks-notify/compare/v0.1.9..v0.1.10
-
-## [0.1.9] - 2025-05-29
-
-[0.1.9]: https://github.com/powerman/md-tasks-notify/compare/v0.1.8..v0.1.9
-
 ## [0.1.8] - 2025-05-29
 
 ### 🐛 Fixed
