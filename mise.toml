@@ -26,7 +26,7 @@ gh = 'latest'
 
 
 [vars]
-cover = '.buildcache/cover.out'
+cover = '.cache/cover.out'
 
 
 [tasks.'changelog:skip-commit']
@@ -64,7 +64,7 @@ run = 'go tool cover -html={{vars.cover}}'
 
 [tasks.'cover:go:generate']
 hide = true
-depends = 'buildcache'
+depends = 'cachedir'
 sources = ['**/*.go']
 outputs = ['{{vars.cover}}']
 run = '''
@@ -74,6 +74,6 @@ gotestsum -- \
     ./...
 '''
 
-[tasks.buildcache]
+[tasks.cachedir]
 hide = true
-run = 'mkdir -p .buildcache'
+run = 'mkdir -p .cache'
