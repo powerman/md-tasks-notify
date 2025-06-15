@@ -39,8 +39,11 @@ jobs:
           echo "total=$total" >> "$GITHUB_OUTPUT"
 
       - name: Debug
-        run: git status; git diff
+        run: git status; git diff; ls -al
 
       - uses: ./.github/actions/coverage-badge
         with:
           total: ${{ steps.coverage.outputs.total }}
+
+      - name: Debug
+        run: git status; git diff; ls -al
