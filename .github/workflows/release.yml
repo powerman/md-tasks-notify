@@ -30,26 +30,15 @@ jobs:
     strategy:
       matrix:
         include:
-          - goos: linux
-            goarch: amd64
-          - goos: linux
-            goarch: 386
-          - goos: linux
-            goarch: arm
-            goarm: 6
-          - goos: linux
-            goarch: arm
-            goarm: 7
-          - goos: linux
-            goarch: arm64
-          - goos: linux
-            goarch: ppc64le
-          - goos: darwin
-            goarch: amd64
-          - goos: darwin
-            goarch: arm64
-          - goos: windows
-            goarch: amd64
+          - {goos: linux, goarch: amd64}
+          - {goos: linux, goarch: 386}
+          - {goos: linux, goarch: arm, goarm: 6}
+          - {goos: linux, goarch: arm, goarm: 7}
+          - {goos: linux, goarch: arm64}
+          - {goos: linux, goarch: ppc64le}
+          - {goos: darwin, goarch: amd64}
+          - {goos: darwin, goarch: arm64}
+          - {goos: windows, goarch: amd64}
     steps:
       - uses: actions/checkout@v4
         with:
