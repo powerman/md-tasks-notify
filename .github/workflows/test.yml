@@ -28,16 +28,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }} # Increase GitHub API rate limits.
 
-      - uses: ./.github/actions/go-cache
+      - uses: ./.github/actions/cache-go-and-tools
 
       - run: mise run test
 
-      - name: Get Coverage Total
-        id: coverage
-        run: |
-          total=$(mise run -q cover:go:total | tail -n 1 | sed -e 's/.*\s\([0-9]\+\).*/\1/')
-          echo "total=$total" >> "$GITHUB_OUTPUT"
-
       - uses: ./.github/actions/coverage-badge
         with:
-          total: ${{ steps.coverage.outputs.total }}
+          total_cmd: "mise run -q cover:go:total | tail -n 1 | sed -e 's/.*)//'"
