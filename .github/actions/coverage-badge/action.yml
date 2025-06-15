@@ -18,7 +18,9 @@ runs:
     - name: Save current git ref
       shell: bash
       run: |
-        echo "ref=$(git rev-parse --abbrev-ref HEAD)" >> "$GITHUB_ENV"
+        ref=$(git rev-parse --abbrev-ref HEAD)
+        [ "$ref" != "HEAD" ] || ref=$(git rev-parse HEAD)
+        echo "ref=$ref" >> "$GITHUB_ENV"
 
     - name: Switch to target branch (create it if not exists)
       shell: bash
