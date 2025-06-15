@@ -25,7 +25,7 @@ runs:
       run: |
         total="$TOTAL"
         if [ -z "$total" -a -n "$TOTAL_CMD" ]; then
-          total=$($TOTAL_CMD)
+          total=$(bash -e -o pipefail -c "$TOTAL_CMD")
         fi
         result=$(echo "$total" | grep -oP '^\s*\K\d+(?=([.]\d+)?%?\s*$)' || true)
         if [ -z "$result" ]; then
