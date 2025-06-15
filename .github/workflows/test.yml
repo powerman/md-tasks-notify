@@ -38,6 +38,9 @@ jobs:
           total=$(mise run -q cover:go:total | tail -n 1 | sed -e 's/.*\s\([0-9]\+\).*/\1/')
           echo "total=$total" >> "$GITHUB_OUTPUT"
 
+      - name: Debug
+        run: git status; git diff
+
       - uses: ./.github/actions/coverage-badge
         with:
           total: ${{ steps.coverage.outputs.total }}
