@@ -5,9 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.11] - 2025-06-15
+## [0.1.6] - 2025-06-15
 
-[0.1.11]: https://github.com/powerman/md-tasks-notify/compare/v0.2.0..v0.1.11
+### 🔔 Changed
+
+- Update CHANGELOG.md by @openidisgood in [#37]
+
+[0.1.6]: https://github.com/powerman/md-tasks-notify/compare/v0.2.0..v0.1.6
+[#37]: https://github.com/powerman/md-tasks-notify/pull/37
 
 ## [0.2.0] - 2025-06-15
 
@@ -17,9 +22,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [0.1.12]: https://github.com/powerman/md-tasks-notify/compare/v0.1.11..v0.1.12
 
-## [0.1.11] - 2025-06-15
+## [0.1.11] - 2025-06-02
 
 [0.1.11]: https://github.com/powerman/md-tasks-notify/compare/v0.1.10..v0.1.11
+
+## [0.1.10] - 2025-06-02
+
+[0.1.10]: https://github.com/powerman/md-tasks-notify/compare/v0.1.9..v0.1.10
+
+## [0.1.9] - 2025-05-29
+
+[0.1.9]: https://github.com/powerman/md-tasks-notify/compare/v0.1.8..v0.1.9
 
 ## [0.1.8] - 2025-05-29
 
