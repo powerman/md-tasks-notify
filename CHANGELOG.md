@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2025-06-15
+
+[0.2.0]: https://github.com/powerman/md-tasks-notify/compare/v0.1.12..v0.2.0
+
 ## [0.1.12] - 2025-06-03
 
 [0.1.12]: https://github.com/powerman/md-tasks-notify/compare/v0.1.11..v0.1.12
@@ -34,10 +38,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **(README)** Improve links and fix emoji by @powerman in [b5edaa9]
 - **(README)** Add SMTP_FROM by @powerman in [3e4ca4f]
 
-### New Contributors
-
-- @github-actions[bot] made their first contribution in [#16](https://github.com/powerman/md-tasks-notify/pull/16)
-
 [0.1.8]: https://github.com/powerman/md-tasks-notify/compare/v0.1.7..v0.1.8
 [802fbe4]: https://github.com/powerman/md-tasks-notify/commit/802fbe405f097ccce1ec55119a86a15d04ddb116
 [7bbb046]: https://github.com/powerman/md-tasks-notify/commit/7bbb0467f665bf62761742d6819d36589760076b
@@ -46,10 +46,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [3583173]: https://github.com/powerman/md-tasks-notify/commit/3583173bdb8979150738a594ee1b946f5ecf2afc
 
 ## [0.1.7] - 2025-05-24
-
-### New Contributors
-
-- @dependabot[bot] made their first contribution
 
 [0.1.7]: https://github.com/powerman/md-tasks-notify/compare/%40%7B10year%7D..v0.1.7
 
