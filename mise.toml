@@ -18,6 +18,12 @@ actionlint = 'latest'
 # Fast linters runner for Go.
 golangci-lint = 'latest'
 
+#--- Release
+# A highly customizable Changelog Generator that follows Conventional Commit specifications.
+git-cliff = 'latest'
+# GitHub's official command line tool.
+gh = 'latest'
+
 
 [vars]
 cover = '.buildcache/cover.out'

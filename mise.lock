@@ -3,18 +3,16 @@ version = "1.7.7"
 backend = "aqua:rhysd/actionlint"
 
 [tools.gh]
-version = "2.74.0"
+version = "2.74.1"
 backend = "aqua:cli/cli"
 
-[tools.gh.checksums]
-"gh_2.74.0_linux_amd64.tar.gz" = "sha256:e55c9d49dc49c0b0fef0a9acd3510482fd9e27ff52ae80f8a6e838cd25b4cd89"
+[tools.git-cliff]
+version = "2.9.1"
+backend = "aqua:orhun/git-cliff"
 
 [tools.go]
 version = "1.24.4"
 backend = "core:go"
-
-[tools.go.checksums]
-"go1.24.4.linux-amd64.tar.gz" = "sha256:77e5da33bb72aeaef1ba4418b6fe511bc4d041873cbf82e5aa6318740df98717"
 
 [tools."go:go.uber.org/mock/mockgen"]
 version = "0.5.2"
@@ -24,12 +22,6 @@ backend = "go:go.uber.org/mock/mockgen"
 version = "2.1.6"
 backend = "aqua:golangci/golangci-lint"
 
-[tools.golangci-lint.checksums]
-"golangci-lint-2.1.6-linux-amd64.tar.gz" = "sha256:e55e0eb515936c0fbd178bce504798a9bd2f0b191e5e357768b18fd5415ee541"
-
 [tools."ubi:gotestyourself/gotestsum"]
 version = "1.12.2"
 backend = "ubi:gotestyourself/gotestsum"
-
-[tools."ubi:gotestyourself/gotestsum".checksums]
-gotestsum-linux-x86_64 = "sha256:b76a983fb5594c1b1ed6a88f5718ccf7225e8e97e3cf637679a32b09b8c7b71d"
