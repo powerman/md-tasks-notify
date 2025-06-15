@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
   workflow_call:
   push:
-    branches: ["master"]
+    branches: [main]
   pull_request:
-    branches: ["master"]
+    branches: [main]
 
 # Cancel testing of a previous commit for the same branch.
 concurrency:
@@ -33,6 +33,6 @@ jobs:
       - run: mise run test
 
       - uses: powerman/.github/.github/actions/coverage-badge@main
-        if: github.ref_name == 'master'
+        if: github.ref_name == 'main'
         with:
           total_cmd: "mise run -q cover:go:total | tail -n 1 | sed -e 's/.*)//'"
