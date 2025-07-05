@@ -61,7 +61,8 @@ func filterMarkdownFiles(files map[string][]byte, fromDay *int, toDay *int) (map
 	tasks := make(map[string][]byte)
 	for filename, data := range files {
 		var buf bytes.Buffer
-		if err := filterActualTasks(*fromDay, *toDay, data, &buf); err != nil {
+		err := filterActualTasks(*fromDay, *toDay, data, &buf)
+		if err != nil {
 			return nil, fmt.Errorf("filter tasks: %w", err)
 		}
 		if buf.Len() > 0 {

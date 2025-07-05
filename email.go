@@ -104,7 +104,8 @@ func (e *Email) Send(to, subject string, content io.Reader) error {
 	}
 	addr := fmt.Sprintf("%s:%d", e.cfg.Host, e.cfg.Port)
 
-	if err := e.sendMail(addr, auth, e.cfg.From, []string{to}, []byte(msg)); err != nil {
+	err = e.sendMail(addr, auth, e.cfg.From, []string{to}, []byte(msg))
+	if err != nil {
 		return fmt.Errorf("send email: %w", err)
 	}
 

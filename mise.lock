@@ -31,11 +31,11 @@ version = "0.5.2"
 backend = "go:go.uber.org/mock/mockgen"
 
 [tools.golangci-lint]
-version = "2.1.6"
+version = "2.2.1"
 backend = "aqua:golangci/golangci-lint"
 
 [tools.golangci-lint.checksums]
-"golangci-lint-2.1.6-linux-amd64.tar.gz" = "sha256:e55e0eb515936c0fbd178bce504798a9bd2f0b191e5e357768b18fd5415ee541"
+"golangci-lint-2.2.1-linux-amd64.tar.gz" = "sha256:4098436776a4f4bbef25dcad93f56533003d085f9133e4c69ba3145973d211dc"
 
 [tools."ubi:gotestyourself/gotestsum"]
 version = "1.12.3"

@@ -1,4 +1,4 @@
-# Origin: https://github.com/powerman/golangci-lint-strict version 2.1.6
+# Origin: https://github.com/powerman/golangci-lint-strict version 2.2.1
 version: "2"
 linters:
   default: all
@@ -19,6 +19,7 @@ linters:
     - varnamelen
     - wrapcheck # Questionable (see https://github.com/tomarrell/wrapcheck/issues/1).
     - wsl # Questionable (too much style differences, hard to consider).
+    - wsl_v5 # Questionable (too much style differences, hard to consider).
   settings:
     decorder:
       disable-init-func-first-check: false # `init` funcs have to be declared before all other functions.
@@ -42,6 +43,8 @@ linters:
               desc: Should be replaced by google.golang.org/protobuf package
     dupl:
       threshold: 100
+    embeddedstructfieldcheck:
+      forbid-mutex: true
     errcheck:
       exclude-functions:
         - encoding/json.Marshal # Required because of errchkjson.check-error-free-encoding.
@@ -126,6 +129,7 @@ linters:
         - identical # Identifies interfaces in the same package that have identical method sets.
         - unused # Identifies interfaces that are not used anywhere in the same package where the interface is defined.
         - opaque # Identifies functions that return interfaces, but the actual returned value is always a single concrete implementation.
+        - unexported # Identifies interfaces that are not exported but are used in exported functions or methods.
     importas:
       alias:
         - pkg: errors
@@ -246,6 +250,7 @@ linters:
         - name: string-of-int
         - name: struct-tag
         - name: superfluous-else
+        - name: time-date
         - name: time-equal
         - name: time-naming
         - name: unchecked-type-assertion
@@ -255,12 +260,14 @@ linters:
         - name: unexported-return
         - name: unhandled-error
           disabled: true # Duplicates errcheck linter.
+        - name: unnecessary-format
         - name: unnecessary-stmt
         - name: unreachable-code
         - name: unused-parameter
         - name: unused-receiver
         - name: use-any
         - name: use-errors-new
+        - name: use-fmt-print
         - name: useless-break
         - name: var-declaration
         - name: var-naming
@@ -311,6 +318,7 @@ linters:
       test:
         name: false # Allow *testing.T param to have any name, not only `t`.
     usestdlibvars:
+      time-date-month: true
       time-month: true
       time-layout: true
       crypto-hash: true
@@ -365,6 +373,7 @@ formatters:
     - gofumpt
     - goimports
     - golines
+    - swaggo
   settings:
     gci:
       sections:
