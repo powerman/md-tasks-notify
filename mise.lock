@@ -6,11 +6,11 @@ backend = "aqua:rhysd/actionlint"
 "actionlint_1.7.7_linux_amd64.tar.gz" = "sha256:023070a287cd8cccd71515fedc843f1985bf96c436b7effaecce67290e7e0757"
 
 [tools.gh]
-version = "2.74.1"
+version = "2.74.2"
 backend = "aqua:cli/cli"
 
 [tools.gh.checksums]
-"gh_2.74.1_linux_amd64.tar.gz" = "sha256:d62406233a42e0dc577dcead8d7bafabcc4c548d9c3a6da761c6709bc8f4b373"
+"gh_2.74.2_linux_amd64.tar.gz" = "sha256:c421091ae5800390e6aef1f50bfda59cc1d4f2ef2200bcd4e1a662c05c28c444"
 
 [tools.git-cliff]
 version = "2.9.1"
@@ -38,8 +38,8 @@ backend = "aqua:golangci/golangci-lint"
 "golangci-lint-2.1.6-linux-amd64.tar.gz" = "sha256:e55e0eb515936c0fbd178bce504798a9bd2f0b191e5e357768b18fd5415ee541"
 
 [tools."ubi:gotestyourself/gotestsum"]
-version = "1.12.2"
+version = "1.12.3"
 backend = "ubi:gotestyourself/gotestsum"
 
 [tools."ubi:gotestyourself/gotestsum".checksums]
-gotestsum-linux-x86_64 = "sha256:b76a983fb5594c1b1ed6a88f5718ccf7225e8e97e3cf637679a32b09b8c7b71d"
+gotestsum-linux-x86_64 = "sha256:2e505a9368568aa7422e0a90ef77acc8807c0d3272ab81c7a69e3e8688d1cf65"
