@@ -41,6 +41,7 @@ b: x
 - [ ] Scheduled tomorrow Start yesterday 🛫 {{.Yesterday}} ⏳ {{.Tomorrow}}
 - [ ] Scheduled tomorrow Start today     🛫 {{.Today}} ⏳ {{.Tomorrow}}
 - [ ] Scheduled tomorrow Start tomorrow  🛫 {{.Tomorrow}} ⏳ {{.Tomorrow}}
+- [ ] Recurring 🔁 every month ⏳ {{.Today}} 📅 {{.Tomorrow}}
 - [X] Task
   - [ ] Subtask
 - [x] Large _cool_ real task 🆔 jps5k3 #tag ⛔ peg74d,gg3xkn ⏬ 🔁 every day ➕ 2024-10-15 🛫 2024-10-15 ⏳ 2024-10-15 📅 2024-10-15 ❌ 2024-10-15 ✅ 2024-10-15 ^some-id
@@ -94,6 +95,7 @@ func TestRun(t *testing.T) {
 				"Due tomorrow Start today",           // Should contain tasks starting today with due date tomorrow
 				"Scheduled tomorrow Start yesterday", // Should contain tasks starting before today with scheduled date tomorrow
 				"Scheduled tomorrow Start today",     // Should contain tasks starting today with scheduled date tomorrow
+				"Recurring",
 			},
 			excludes: []string{
 				"---",                               // Should not contain frontmatter
@@ -116,6 +118,7 @@ func TestRun(t *testing.T) {
 			contains: []string{
 				"Due today",       // Should contain tasks due today
 				"Scheduled today", // Should contain tasks scheduled for today
+				"Recurring",
 			},
 			excludes: []string{
 				"Due tomorrow",  // Should not contain future tasks
@@ -134,6 +137,7 @@ func TestRun(t *testing.T) {
 				"Due today",       // Should contain tasks due today
 				"Due tomorrow",    // Should contain tasks due tomorrow
 				"Scheduled today", // Should contain tasks scheduled for today
+				"Recurring",
 			},
 			excludes: []string{
 				"[X] Task", // Should not contain completed tasks
