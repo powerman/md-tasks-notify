@@ -159,11 +159,18 @@ func (r *FilteredTasksRenderer) listItem(w util.BufWriter, source []byte, node a
 		return 0, err
 	}
 
+	var (
+		hasDue          = !task.Due.IsZero()
+		hasScheduled    = !task.Scheduled.IsZero()
+		dueInTime       = isBetween(task.Due, r.DueBefore, r.DueAfter)
+		scheduledInTime = isBetween(task.Scheduled, r.ScheduledBefore, r.ScheduledAfter)
+		started         = isBetween(task.Start, r.StartBefore, time.Time{})
+	)
 	if r.StatusType[task.StatusType] &&
-		isBetween(task.Due, r.DueBefore, r.DueAfter) &&
-		isBetween(task.Scheduled, r.ScheduledBefore, r.ScheduledAfter) &&
-		isBetween(task.Start, r.StartBefore, time.Time{}) &&
-		(!r.RequireDueOrScheduled || !task.Due.IsZero() || !task.Scheduled.IsZero()) {
+		started &&
+		((hasDue && hasScheduled && (dueInTime || scheduledInTime)) ||
+			(dueInTime && scheduledInTime)) &&
+		(!r.RequireDueOrScheduled || hasDue || hasScheduled) {
 		seg := n.FirstChild().Lines().At(0)
 		_ = w.WriteByte('-')
 		_ = w.WriteByte(' ')
