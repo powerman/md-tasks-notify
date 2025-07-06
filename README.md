@@ -36,14 +36,6 @@ Download the latest binary from the [releases page](https://github.com/powerman/
 go install github.com/powerman/md-tasks-notify@latest
 ```
 
-### From source
-
-```sh
-git clone https://github.com/powerman/md-tasks-notify.git
-cd md-tasks-notify
-go build -o md-tasks-notify .
-```
-
 ## Usage
 
 ```
