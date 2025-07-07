@@ -2,10 +2,13 @@ package main
 
 import (
 	"bytes"
+	"os"
 	"strings"
 	"testing"
 	"text/template"
 	"time"
+
+	"go.uber.org/mock/gomock"
 )
 
 // getExampleMarkdown returns example Markdown content with dates relative to current date using Go templates.
@@ -300,6 +303,92 @@ func TestFormatTasks(t *testing.T) {
 	}
 }
 
+func TestNoEmailWhenEmpty(t *testing.T) {
+	// Setup mock
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockSMTP := NewMockSMTPSender(ctrl)
+
+	// Create temporary file without tasks
+	tempDir := t.TempDir()
+	tempFile := tempDir + "/no_tasks.md"
+	err := os.WriteFile(tempFile, []byte("# Just a header\n\nSome text"), 0o644)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Test parameters
+	fromDay := 0
+	toDay := 1
+	emailTo := "test@example.com"
+
+	// Create config with mock
+	emailCfg := &EmailConfig{
+		Host:     "localhost",
+		Port:     25,
+		From:     "test@example.com",
+		SendMail: mockSMTP.SendMail,
+	}
+
+	// No email should be sent
+	mockSMTP.EXPECT().SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(0)
+
+	// Run the test
+	var stdout bytes.Buffer
+	err = run(&fromDay, &toDay, &emailTo, emailCfg, &stdout, []string{tempFile})
+	if err != nil {
+		t.Errorf("run() unexpected error = %v", err)
+	}
+	// No content should be sent
+	if stdout.Len() > 0 {
+		t.Errorf("run() should not produce output for empty tasks, got %v", stdout.String())
+	}
+}
+
+func TestEmailWithTasks(t *testing.T) {
+	// Setup mock
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockSMTP := NewMockSMTPSender(ctrl)
+
+	// Create test file with known task
+	tempDir := t.TempDir()
+	tempFile := tempDir + "/tasks.md"
+	taskDate := time.Now().Format(time.DateOnly)
+	taskContent := "- [ ] Test task 📅 " + taskDate + "\n"
+	err := os.WriteFile(tempFile, []byte(taskContent), 0o644)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Test parameters
+	fromDay := 0
+	toDay := 1
+	emailTo := "test@example.com"
+
+	// Create config with mock
+	emailCfg := &EmailConfig{
+		Host:     "localhost",
+		Port:     25,
+		From:     "test@example.com",
+		SendMail: mockSMTP.SendMail,
+	}
+
+	// Email should be sent once
+	mockSMTP.EXPECT().SendMail(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(nil)
+
+	// Run the test
+	var stdout bytes.Buffer
+	err = run(&fromDay, &toDay, &emailTo, emailCfg, &stdout, []string{tempFile})
+	if err != nil {
+		t.Errorf("run() unexpected error = %v", err)
+	}
+	// Email should be sent, but no stdout content
+	if stdout.Len() > 0 {
+		t.Errorf("run() should not write to stdout when using email, got: %s", stdout.String())
+	}
+}
+
 func TestRun_Integration(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -342,7 +431,7 @@ func TestRun_Integration(t *testing.T) {
 					}
 				}()
 			}
-			err := run(&tt.fromDay, &tt.toDay, &tt.emailTo, &stdout, tt.paths)
+			err := run(&tt.fromDay, &tt.toDay, &tt.emailTo, nil, &stdout, tt.paths)
 			if !tt.wantPanic {
 				if (err != nil) != tt.wantErr {
 					t.Errorf("run() error = %v, wantErr %v", err, tt.wantErr)

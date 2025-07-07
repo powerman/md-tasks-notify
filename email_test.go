@@ -175,8 +175,11 @@ func TestSendEmail(tt *testing.T) {
 			mockSMTP := NewMockSMTPSender(ctrl)
 
 			// Create Email instance with mock
+			if test.config == nil {
+				test.config = NewEmailConfigFromEnv()
+			}
+			test.config.SendMail = mockSMTP.SendMail
 			email := NewEmail(test.config)
-			email.sendMail = mockSMTP.SendMail
 
 			if test.wantErr == nil {
 				mockSMTP.EXPECT().

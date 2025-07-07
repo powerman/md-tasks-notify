@@ -22,6 +22,7 @@ type EmailConfig struct {
 	Username string // May be empty when auth not needed.
 	Password string // May be empty when auth not needed.
 	From     string
+	SendMail func(string, smtp.Auth, string, []string, []byte) error // For testing
 }
 
 // NewEmailConfigFromEnv returns email configuration from environment variables.
@@ -63,8 +64,7 @@ func NewEmailConfigFromEnv() *EmailConfig {
 
 // Email provides email sending functionality.
 type Email struct {
-	cfg      *EmailConfig
-	sendMail func(string, smtp.Auth, string, []string, []byte) error
+	cfg *EmailConfig
 }
 
 // NewEmail creates a new Email instance.
@@ -75,10 +75,10 @@ func NewEmail(cfg *EmailConfig) *Email {
 	if cfg.From == "" || cfg.Host == "" || cfg.Port == 0 {
 		panic(fmt.Sprintf("Invalid EmailConfig: %+v", cfg))
 	}
-	return &Email{
-		cfg:      cfg,
-		sendMail: smtp.SendMail,
+	if cfg.SendMail == nil {
+		cfg.SendMail = smtp.SendMail
 	}
+	return &Email{cfg: cfg}
 }
 
 // Send sends email with given content to specified recipient.
@@ -104,7 +104,7 @@ func (e *Email) Send(to, subject string, content io.Reader) error {
 	}
 	addr := fmt.Sprintf("%s:%d", e.cfg.Host, e.cfg.Port)
 
-	err = e.sendMail(addr, auth, e.cfg.From, []string{to}, []byte(msg))
+	err = e.cfg.SendMail(addr, auth, e.cfg.From, []string{to}, []byte(msg))
 	if err != nil {
 		return fmt.Errorf("send email: %w", err)
 	}
