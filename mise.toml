@@ -29,6 +29,14 @@ gh = 'latest'
 cover = '.cache/cover.out'
 
 
+[tasks.fmt]
+description = 'Format all code'
+depends = ['fmt:*']
+
+[tasks.'fmt:go']
+description = 'Format Go code'
+run = 'goimports -w . && gci write -s standard -s default -s localmodule . && gofumpt -w .'
+
 [tasks.test]
 alias = 'default'
 description = 'Run all linters and tests'
