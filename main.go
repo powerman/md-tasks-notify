@@ -28,14 +28,14 @@ func main() {
 		log.Fatalln("Error: from-day must be less than or equal to to-day")
 	}
 
-	err := run(fromDay, toDay, emailTo, os.Stdout, flag.Args())
+	err := run(fromDay, toDay, emailTo, nil, os.Stdout, flag.Args())
 	if err != nil {
 		log.Fatalln("Failed to", err)
 	}
 }
 
 // run is testable part of main function.
-func run(fromDay *int, toDay *int, emailTo *string, stdout io.Writer, paths []string) error {
+func run(fromDay, toDay *int, emailTo *string, emailCfg *EmailConfig, stdout io.Writer, paths []string) error {
 	files, err := readMarkdownFilesOrStdin(paths)
 	if err != nil {
 		return err
@@ -50,8 +50,8 @@ func run(fromDay *int, toDay *int, emailTo *string, stdout io.Writer, paths []st
 
 	if *emailTo == "" {
 		_, err = io.Copy(stdout, &buf)
-	} else {
-		err = NewEmail(nil).Send(*emailTo, emailSubject, &buf)
+	} else if buf.Len() > 0 { // Don't send email if there are no tasks
+		err = NewEmail(emailCfg).Send(*emailTo, emailSubject, &buf)
 	}
 	return err
 }
