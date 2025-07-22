@@ -6,7 +6,7 @@ require (
 	github.com/litao91/goldmark-mathjax v0.0.0-20210217064022-a43cf739a50f
 	github.com/powerman/check v1.8.0
 	github.com/powerman/goldmark-obsidian v0.1.1
-	github.com/yuin/goldmark v1.7.12
+	github.com/yuin/goldmark v1.7.13
 	go.abhg.dev/goldmark/hashtag v0.4.0
 	go.abhg.dev/goldmark/mermaid v0.5.0
 	go.abhg.dev/goldmark/wikilink v0.6.0
