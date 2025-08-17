@@ -1,10 +1,11 @@
 # md-tasks-notify
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/powerman/md-tasks-notify.svg)](https://pkg.go.dev/github.com/powerman/md-tasks-notify)
-[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/powerman/md-tasks-notify/test.yml?logo=github&label=build)](https://github.com/powerman/md-tasks-notify/actions/workflows/test.yml)
+[![License MIT](https://img.shields.io/badge/license-MIT-royalblue.svg)](LICENSE)
+[![Go version](https://img.shields.io/github/go-mod/go-version/powerman/md-tasks-notify?color=blue)](https://go.dev/)
+[![Test](https://img.shields.io/github/actions/workflow/status/powerman/md-tasks-notify/test.yml?label=test)](https://github.com/powerman/md-tasks-notify/actions/workflows/test.yml)
 [![Coverage Status](https://raw.githubusercontent.com/powerman/md-tasks-notify/gh-badges/coverage.svg)](https://github.com/powerman/md-tasks-notify/actions/workflows/test.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/powerman/md-tasks-notify)](https://goreportcard.com/report/github.com/powerman/md-tasks-notify)
-[![Release](https://img.shields.io/github/v/release/powerman/md-tasks-notify)](https://github.com/powerman/md-tasks-notify/releases/latest)
+[![Release](https://img.shields.io/github/v/release/powerman/md-tasks-notify?color=blue)](https://github.com/powerman/md-tasks-notify/releases/latest)
 
 A command-line tool to send daily notifications for actual tasks found in markdown files.
 

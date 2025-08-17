@@ -31,18 +31,17 @@ jobs:
       matrix:
         include:
           - {goos: linux, goarch: amd64}
-          - {goos: linux, goarch: 386}
-          - {goos: linux, goarch: arm, goarm: 6}
-          - {goos: linux, goarch: arm, goarm: 7}
           - {goos: linux, goarch: arm64}
-          - {goos: linux, goarch: ppc64le}
+          - {goos: linux, goarch: arm, goarm: 7}
           - {goos: darwin, goarch: amd64}
           - {goos: darwin, goarch: arm64}
           - {goos: windows, goarch: amd64}
+          - {goos: windows, goarch: arm64}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           token: ${{ env.GITHUB_TOKEN }}
+          ref: ${{ needs.release-pr.outputs.version }}
 
       - name: Build binary
         id: build
@@ -54,6 +53,9 @@ jobs:
           goarm: ${{ matrix.goarm }}
           project_path: '.'
           binary_name: ${{ github.event.repository.name }}
+          pre_command: 'export CGO_ENABLED=0'
+          build_flags: '-trimpath' # Reproducible build (also needs -buildid= in ldflags).
+          ldflags: '-s -w -buildid='
           executable_compression: upx
           md5sum: false
           compress_assets: 'OFF'
@@ -84,13 +86,13 @@ jobs:
       - name: Upload files to the release
         uses: softprops/action-gh-release@v2
         with:
+          token: ${{ env.GITHUB_TOKEN }}
           tag_name: ${{ needs.release-pr.outputs.version }}
           body: ${{ needs.release-pr.outputs.changelog }}
           files: ${{ steps.build.outputs.release_asset_dir }}/*
           draft: true
           prerelease: ${{ needs.release-pr.outputs.prerelease }}
           make_latest: false
-          token: ${{ env.GITHUB_TOKEN }}
 
   # Mark release as non-draft and latest.
   finalize:
@@ -104,9 +106,9 @@ jobs:
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
+          token: ${{ env.GITHUB_TOKEN }}
           tag_name: ${{ needs.release-pr.outputs.version }}
           body: ${{ needs.release-pr.outputs.changelog }}
           draft: false
           prerelease: ${{ needs.release-pr.outputs.prerelease }}
-          make_latest: true
-          token: ${{ env.GITHUB_TOKEN }}
+          make_latest: ${{ needs.release-pr.outputs.prerelease != 'true' }}
