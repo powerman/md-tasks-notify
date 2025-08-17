@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2025-08-17
+
+### 🐛 Fixed
+
+- Do not send empty email by @powerman in [#48]
+
+### 📚 Documentation
+
+- Remove install from source by @powerman in [d72cfc3]
+
+### 📦️ Dependencies
+
+- **(deps)** Bump github.com/yuin/goldmark from 1.7.12 to 1.7.13 by @dependabot[bot] in [#50]
+
+[0.2.2]: https://github.com/powerman/md-tasks-notify/compare/v0.2.1..v0.2.2
+[d72cfc3]: https://github.com/powerman/md-tasks-notify/commit/d72cfc348d0bfaa9e398af35a42e4e20a3e8bff8
+[#48]: https://github.com/powerman/md-tasks-notify/pull/48
+[#50]: https://github.com/powerman/md-tasks-notify/pull/50
+
 ## [0.2.1] - 2025-07-05
 
 ### 🐛 Fixed
