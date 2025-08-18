@@ -73,24 +73,35 @@ func readMarkdownFilesFromFS(fsys fs.FS, paths []string) (map[string][]byte, err
 
 // readMarkdownFiles reads markdown files from paths.
 func readMarkdownFiles(paths []string) (map[string][]byte, error) {
-	relPaths := make([]string, len(paths))
-	for i, path := range paths {
+	result := make(map[string][]byte)
+	for _, path := range paths {
 		absPath, err := filepath.Abs(path)
 		if err != nil {
 			return nil, err
 		}
-		// Remove leading "/" to make path relative to root for fs.FS.
-		relPaths[i] = strings.TrimPrefix(absPath, "/")
-	}
-	filesData, err := readMarkdownFilesFromFS(os.DirFS("/"), relPaths)
-	if err != nil {
-		return nil, err
-	}
+		info, err := os.Stat(absPath)
+		if err != nil {
+			return nil, err
+		}
 
-	// Convert relative paths back to absolute
-	result := make(map[string][]byte, len(filesData))
-	for filename, data := range filesData {
-		result["/"+filename] = data
+		// Normalize: for directories, append "." to make them look like files.
+		targetPath := absPath
+		if info.IsDir() {
+			targetPath = filepath.Join(absPath, ".")
+		}
+
+		// Now we can handle both files and directories uniformly.
+		dir := filepath.Dir(targetPath)
+		baseName := filepath.Base(targetPath)
+		filesData, err := readMarkdownFilesFromFS(os.DirFS(dir), []string{baseName})
+		if err != nil {
+			return nil, err
+		}
+
+		// Convert relative paths to absolute.
+		for filename, data := range filesData {
+			result[filepath.Join(dir, filename)] = data
+		}
 	}
 	return result, nil
 }

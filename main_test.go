@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"text/template"
@@ -311,7 +312,7 @@ func TestNoEmailWhenEmpty(t *testing.T) {
 
 	// Create temporary file without tasks
 	tempDir := t.TempDir()
-	tempFile := tempDir + "/no_tasks.md"
+	tempFile := filepath.Join(tempDir, "no_tasks.md")
 	err := os.WriteFile(tempFile, []byte("# Just a header\n\nSome text"), 0o644)
 	if err != nil {
 		t.Fatal(err)
@@ -353,7 +354,7 @@ func TestEmailWithTasks(t *testing.T) {
 
 	// Create test file with known task
 	tempDir := t.TempDir()
-	tempFile := tempDir + "/tasks.md"
+	tempFile := filepath.Join(tempDir, "tasks.md")
 	taskDate := time.Now().Format(time.DateOnly)
 	taskContent := "- [ ] Test task 📅 " + taskDate + "\n"
 	err := os.WriteFile(tempFile, []byte(taskContent), 0o644)
