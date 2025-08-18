@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.5] - 2025-08-18
+
+### 🐛 Fixed
+
+- Windows support by @powerman in [644dfec]
+
+[0.2.5]: https://github.com/powerman/md-tasks-notify/compare/v0.2.4..v0.2.5
+[644dfec]: https://github.com/powerman/md-tasks-notify/commit/644dfec2c60c325ca7e49bfbcca4ebdb429b0904
+
 ## [0.2.4] - 2025-08-17
 
 [0.2.4]: https://github.com/powerman/md-tasks-notify/compare/v0.2.3..v0.2.4
