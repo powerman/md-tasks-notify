@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/litao91/goldmark-mathjax v0.0.0-20210217064022-a43cf739a50f
 	github.com/powerman/check v1.8.0
-	github.com/powerman/goldmark-obsidian v0.1.1
+	github.com/powerman/goldmark-obsidian v0.1.4
 	github.com/yuin/goldmark v1.7.13
 	go.abhg.dev/goldmark/hashtag v0.4.0
 	go.abhg.dev/goldmark/mermaid v0.5.0
@@ -15,7 +15,7 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/forPelevin/gomoji v1.3.0 // indirect
+	github.com/forPelevin/gomoji v1.3.1 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
