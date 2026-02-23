@@ -20,7 +20,7 @@ type EmailConfig struct {
 	Host     string
 	Port     int
 	Username string // May be empty when auth not needed.
-	Password string // May be empty when auth not needed.
+	Password string //nolint:gosec // By desing. May be empty when auth not needed.
 	From     string
 	SendMail func(string, smtp.Auth, string, []string, []byte) error // For testing
 }
@@ -56,7 +56,7 @@ func NewEmailConfigFromEnv() *EmailConfig {
 	case port > 0 && port < 65536:
 		cfg.Port = port
 	case port != 0:
-		log.Printf("Warning: Ignoring invalid SMTP port %d", port)
+		log.Printf("Warning: Ignoring invalid SMTP port %d", port) //nolint:gosec // False positive.
 	}
 
 	return cfg

@@ -1,4 +1,6 @@
-// Package main provides a tool for filtering and displaying Markdown tasks based on their status and dates.
+// A tool for filtering and displaying Markdown tasks based on their status and dates.
+//
+//nolint:godoclint // False positive.
 package main
 
 import (
@@ -56,7 +58,8 @@ func run(fromDay, toDay *int, emailTo *string, emailCfg *EmailConfig, stdout io.
 	return err
 }
 
-// filterMarkdownFiles processes each file and returns a map of filenames to their filtered task content.
+// filterMarkdownFiles processes each file and returns a map of filenames to their filtered
+// task content.
 func filterMarkdownFiles(files map[string][]byte, fromDay *int, toDay *int) (map[string][]byte, error) {
 	tasks := make(map[string][]byte)
 	for filename, data := range files {
