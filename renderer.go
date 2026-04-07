@@ -5,7 +5,7 @@ import (
 	"time"
 
 	mathjax "github.com/litao91/goldmark-mathjax"
-	obsast "github.com/powerman/goldmark-obsidian/ast"
+	"github.com/powerman/goldmark-obsidian/obsast"
 	"github.com/yuin/goldmark/ast"
 	extast "github.com/yuin/goldmark/extension/ast"
 	"github.com/yuin/goldmark/renderer"
