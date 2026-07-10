@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/litao91/goldmark-mathjax v0.0.0-20210217064022-a43cf739a50f
-	github.com/powerman/check v1.9.1
+	github.com/powerman/check v1.13.0
 	github.com/powerman/goldmark-obsidian v0.2.0
 	github.com/yuin/goldmark v1.8.2
 	go.abhg.dev/goldmark/hashtag v0.4.0
@@ -14,17 +14,9 @@ require (
 )
 
 require (
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/forPelevin/gomoji v1.4.1 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/powerman/deepequal v0.1.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/smartystreets/goconvey v1.8.1 // indirect
 	github.com/yuin/goldmark-meta v1.1.0 // indirect
 	golang.org/x/sys v0.42.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260406210006-6f92a3bedf2d // indirect
-	google.golang.org/grpc v1.80.0 // indirect
-	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
