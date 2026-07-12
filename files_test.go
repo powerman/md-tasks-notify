@@ -7,6 +7,8 @@ import (
 )
 
 func TestIsMarkdownFile(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		path string
@@ -23,6 +25,7 @@ func TestIsMarkdownFile(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := isMarkdownFile(tt.path); got != tt.want {
 				t.Errorf("isMarkdownFile(%q) = %v, want %v", tt.path, got, tt.want)
 			}
@@ -31,6 +34,8 @@ func TestIsMarkdownFile(t *testing.T) {
 }
 
 func TestReadFiles(t *testing.T) {
+	t.Parallel()
+
 	// Create a virtual filesystem for testing.
 	fsys := fstest.MapFS{
 		"test1.md":         &fstest.MapFile{Data: []byte("# Test 1\n- [ ] Task 1")},
@@ -100,6 +105,8 @@ func TestReadFiles(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := readMarkdownFilesFromFS(fsys, tt.paths)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("readFiles() error = %v, wantErr %v", err, tt.wantErr)

@@ -77,6 +77,8 @@ b: x
 }
 
 func TestRun(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name     string
 		fromDate int
@@ -160,6 +162,8 @@ func TestRun(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			var buf bytes.Buffer
 			err := filterActualTasks(tt.fromDate, tt.toDate, tt.input, &buf)
 			if (err != nil) != tt.wantErr {
@@ -183,6 +187,8 @@ func TestRun(t *testing.T) {
 }
 
 func TestFilterMarkdownFiles(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name    string
 		files   map[string][]byte
@@ -223,6 +229,7 @@ func TestFilterMarkdownFiles(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got, err := filterMarkdownFiles(tt.files, &tt.fromDay, &tt.toDay)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("filterMarkdownFiles() error = %v, wantErr %v", err, tt.wantErr)
@@ -242,6 +249,8 @@ func TestFilterMarkdownFiles(t *testing.T) {
 }
 
 func TestFormatTasks(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name     string
 		tasks    map[string][]byte
@@ -287,6 +296,7 @@ func TestFormatTasks(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			buf := formatTasks(tt.tasks)
 			output := buf.String()
 
@@ -305,9 +315,11 @@ func TestFormatTasks(t *testing.T) {
 }
 
 func TestNoEmailWhenEmpty(t *testing.T) {
+	t.Parallel()
+
 	// Setup mock
 	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+	t.Cleanup(ctrl.Finish)
 	mockSMTP := NewMockSMTPSender(ctrl)
 
 	// Create temporary file without tasks
@@ -347,9 +359,11 @@ func TestNoEmailWhenEmpty(t *testing.T) {
 }
 
 func TestEmailWithTasks(t *testing.T) {
+	t.Parallel()
+
 	// Setup mock
 	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+	t.Cleanup(ctrl.Finish)
 	mockSMTP := NewMockSMTPSender(ctrl)
 
 	// Create test file with known task
@@ -391,6 +405,8 @@ func TestEmailWithTasks(t *testing.T) {
 }
 
 func TestRun_Integration(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name      string
 		fromDay   int
@@ -424,6 +440,8 @@ func TestRun_Integration(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			var stdout bytes.Buffer
 			if tt.wantPanic {
 				defer func() {

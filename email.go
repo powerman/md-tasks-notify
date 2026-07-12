@@ -11,6 +11,7 @@ import (
 
 const (
 	defaultFrom        = "md-tasks-notify"
+	defaultHost        = "localhost"
 	smtpPort           = 25
 	smtpSubmissionPort = 587
 )
@@ -45,7 +46,7 @@ func NewEmailConfigFromEnv() *EmailConfig {
 		cfg.From = defaultFrom
 	}
 	if cfg.Host == "" {
-		cfg.Host = "localhost"
+		cfg.Host = defaultHost
 	}
 	if cfg.Username != "" || cfg.Password != "" {
 		cfg.Port = smtpSubmissionPort // Use submission port when auth required.

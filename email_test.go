@@ -15,18 +15,17 @@ import (
 // ErrMock is used to test error handling.
 var ErrMock = errors.New("mock error")
 
-func TestSendEmail(tt *testing.T) {
-	t := check.T(tt)
+func TestSendEmail(t *testing.T) {
+	t.Parallel()
 
 	hostname, err := os.Hostname()
 	if err != nil {
-		hostname = "localhost"
+		hostname = defaultHost
 	}
 	defaultFrom := fmt.Sprintf("md-tasks-notify@%s", hostname)
 
 	tests := []struct {
 		name     string
-		setup    func(*testing.T)
 		config   *EmailConfig
 		to       string
 		subject  string
@@ -41,7 +40,7 @@ func TestSendEmail(tt *testing.T) {
 		{
 			name: "local without auth",
 			config: &EmailConfig{
-				Host: "localhost",
+				Host: defaultHost,
 				Port: 25,
 				From: defaultFrom,
 			},
@@ -61,7 +60,7 @@ func TestSendEmail(tt *testing.T) {
 		{
 			name: "custom from address",
 			config: &EmailConfig{
-				Host: "localhost",
+				Host: defaultHost,
 				Port: 25,
 				From: "from@example.com",
 			},
@@ -105,7 +104,7 @@ func TestSendEmail(tt *testing.T) {
 		{
 			name: "custom port",
 			config: &EmailConfig{
-				Host: "localhost",
+				Host: defaultHost,
 				Port: 2525,
 				From: defaultFrom,
 			},
@@ -125,7 +124,7 @@ func TestSendEmail(tt *testing.T) {
 		{
 			name: "send error",
 			config: &EmailConfig{
-				Host: "localhost",
+				Host: defaultHost,
 				Port: 25,
 				From: defaultFrom,
 			},
@@ -134,43 +133,16 @@ func TestSendEmail(tt *testing.T) {
 			content: "Hello, World!",
 			wantErr: fmt.Errorf("send email: %w", ErrMock),
 		},
-		{
-			name: "from env vars",
-			setup: func(tt *testing.T) {
-				tt.Helper()
-				tt.Setenv("SMTP_HOST", "smtp.example.com")
-				tt.Setenv("SMTP_PORT", "2525")
-				tt.Setenv("SMTP_USERNAME", "user")
-				tt.Setenv("SMTP_PASSWORD", "pass")
-				tt.Setenv("SMTP_FROM", "from@example.com")
-			},
-			to:       "to@example.com",
-			subject:  "Test Subject",
-			content:  "Hello, World!",
-			wantAddr: "smtp.example.com:2525",
-			wantAuth: true,
-			wantFrom: "from@example.com",
-			wantTo:   []string{"to@example.com"},
-			wantBody: []string{
-				"From: from@example.com",
-				"To: to@example.com",
-				"Subject: Test Subject",
-				"Hello, World!",
-			},
-		},
 	}
 
 	for _, test := range tests {
-		t.Run(test.name, func(tt *testing.T) {
-			t := check.T(tt)
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
 
-			// Apply test setup if any
-			if test.setup != nil {
-				test.setup(tt)
-			}
+			c := check.Must(t)
 
-			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
+			ctrl := gomock.NewController(c)
+			t.Cleanup(ctrl.Finish)
 
 			mockSMTP := NewMockSMTPSender(ctrl)
 
@@ -192,12 +164,12 @@ func TestSendEmail(tt *testing.T) {
 					).
 					DoAndReturn(func(_ string, auth smtp.Auth, _ string, _ []string, msg []byte) error {
 						// Verify auth
-						t.Equal((auth != nil), test.wantAuth)
+						c.Equal((auth != nil), test.wantAuth)
 
 						// Verify email body contains expected strings
 						body := string(msg)
 						for _, want := range test.wantBody {
-							t.Contains(body, want)
+							c.Contains(body, want)
 						}
 						return nil
 					})
@@ -220,10 +192,53 @@ func TestSendEmail(tt *testing.T) {
 
 			// Check error
 			if test.wantErr == nil {
-				t.Nil(err)
+				c.Nil(err)
 			} else {
-				t.True(errors.Is(err, ErrMock))
+				c.True(errors.Is(err, ErrMock))
 			}
 		})
 	}
+}
+
+func TestSendEmailFromEnvVars(t *testing.T) {
+	t.Setenv("SMTP_HOST", "smtp.example.com")
+	t.Setenv("SMTP_PORT", "2525")
+	t.Setenv("SMTP_USERNAME", "user")
+	t.Setenv("SMTP_PASSWORD", "pass")
+	t.Setenv("SMTP_FROM", "from@example.com")
+
+	c := check.Must(t)
+
+	ctrl := gomock.NewController(c)
+	t.Cleanup(ctrl.Finish)
+
+	mockSMTP := NewMockSMTPSender(ctrl)
+
+	config := NewEmailConfigFromEnv()
+	config.SendMail = mockSMTP.SendMail
+	email := NewEmail(config)
+
+	mockSMTP.EXPECT().
+		SendMail(
+			"smtp.example.com:2525",
+			gomock.Any(),
+			"from@example.com",
+			[]string{"to@example.com"},
+			gomock.Any(),
+		).
+		DoAndReturn(func(_ string, auth smtp.Auth, _ string, _ []string, msg []byte) error {
+			c.Equal((auth != nil), true)
+
+			body := string(msg)
+			c.Contains(body, "From: from@example.com")
+			c.Contains(body, "To: to@example.com")
+			c.Contains(body, "Subject: Test Subject")
+			c.Contains(body, "Hello, World!")
+			return nil
+		})
+
+	var buf bytes.Buffer
+	buf.WriteString("Hello, World!")
+	err := email.Send("to@example.com", "Test Subject", &buf)
+	c.Nil(err)
 }
