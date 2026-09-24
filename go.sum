@@ -21,8 +21,8 @@ github.com/litao91/goldmark-mathjax v0.0.0-20210217064022-a43cf739a50f h1:plCPYX
 github.com/litao91/goldmark-mathjax v0.0.0-20210217064022-a43cf739a50f/go.mod h1:leg+HM7jUS84JYuY120zmU68R6+UeU6uZ/KAW7cViKE=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/powerman/check v1.13.0 h1:/uNADrvWRzsRKCN00LEN/Ph0XMlUmtOhZTw2Qr60nNQ=
-github.com/powerman/check v1.13.0/go.mod h1:h7WkuVUhfVN1yl/F6zm+zbZLeOUtx34+JpMA8aA2vR0=
+github.com/powerman/check v1.14.0 h1:K8iOOVCMOcIeeGr/SBvVGJbiq5WAUtW7sIoGfE7+Skc=
+github.com/powerman/check v1.14.0/go.mod h1:SLUFjRHJRso/wokJgRvySca9reNPpC0YG1SvE0sifA0=
 github.com/powerman/goldmark-obsidian v0.2.0 h1:Icr2CdP+MSOT1LWvl2/keTfUlBREQF0uRJnxlb/xonI=
 github.com/powerman/goldmark-obsidian v0.2.0/go.mod h1:OTefpTwRRdfeKWZXCv1ErZM87e2bcRnSwV2sQT2cN/Q=
 github.com/rivo/uniseg v0.4.7 h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=
