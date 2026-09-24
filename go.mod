@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/litao91/goldmark-mathjax v0.0.0-20210217064022-a43cf739a50f
-	github.com/powerman/check v1.13.0
+	github.com/powerman/check v1.14.0
 	github.com/powerman/goldmark-obsidian v0.2.0
 	github.com/yuin/goldmark v1.8.4
 	go.abhg.dev/goldmark/hashtag v0.4.0
