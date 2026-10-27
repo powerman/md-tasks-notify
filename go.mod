@@ -1,6 +1,6 @@
 module github.com/powerman/md-tasks-notify
 
-go 1.27.0
+go 1.27.3
 
 require (
 	github.com/litao91/goldmark-mathjax v0.0.0-20210217064022-a43cf739a50f
