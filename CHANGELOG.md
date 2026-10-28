@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-10-28
+
+### 🔔 Changed
+
+- Require Go 1.27 by @powerman in [f52abaa]
+
+### 🐛 Fixed
+
+- Build with Go 1.27.3 by @powerman in [69ce868]
+
+### 📦️ Dependencies
+
+- **(deps)** Upgrade go and golangci-lint by @powerman in [23fbc37]
+- **(deps)** Upgrade go modules by @powerman in [b816723]
+- **(deps)** Upgrade go and golangci-lint by @powerman in [8cf10e2]
+- **(deps)** Mise up by @powerman in [b0a2e2d]
+
+[0.3.0]: https://github.com/powerman/md-tasks-notify/compare/v0.2.9..v0.3.0
+[23fbc37]: https://github.com/powerman/md-tasks-notify/commit/23fbc37bb73517c8701d4dceb98c5e63fe54d8cc
+[b816723]: https://github.com/powerman/md-tasks-notify/commit/b81672358f4857dbbae2e580f75295a82b590c82
+[8cf10e2]: https://github.com/powerman/md-tasks-notify/commit/8cf10e2af2b9cf9b6b27dfa979c9f69e15c02aac
+[69ce868]: https://github.com/powerman/md-tasks-notify/commit/69ce86821c09a760c5cdf1c85805d861b9609406
+[f52abaa]: https://github.com/powerman/md-tasks-notify/commit/f52abaae3a72c33ad46279fc619dec2741c12888
+[b0a2e2d]: https://github.com/powerman/md-tasks-notify/commit/b0a2e2db3ae3254ee821a88e7d37bafd9a072160
+
 ## [0.2.9] - 2026-04-07
 
 ### 📦️ Dependencies
